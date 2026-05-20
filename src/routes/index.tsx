@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Heart } from "lucide-react";
+import { useState, useEffect } from "react";
 import hero from "@/assets/hero-bouquet.jpeg";
-import { products, formatINR } from "@/data/products";
+import { products as staticProducts, formatINR } from "@/data/products";
 import { FloatingPetals } from "@/components/site/FloatingPetals";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
 import { TrustStrip } from "@/components/site/TrustStrip";
@@ -19,6 +20,45 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const resData = await res.json();
+          const data = resData.success ? resData.data : resData;
+          // Filter only active products
+          const activeOnly = data.filter((p: any) => p.status === "active" || p.status === "Featured" || !p.status);
+          
+          // Map DB products to UI Product shape
+          const mapped = activeOnly.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            tagline: p.subtitle || p.category,
+            category: p.category,
+            price: Number(p.pricingMatrix?.[0]?.price) || Number(p.previewPrice) || 0,
+            image: p.image || staticProducts[0].image,
+            hoverImage: p.hoverImage,
+            badge: p.badge,
+            description: p.description
+          }));
+          
+          setDbProducts(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load products from database for homepage:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  const displayProducts = dbProducts.length > 0 ? dbProducts : staticProducts;
+
   return (
     <>
       {/* HERO + TRUST STRIP (shared petal backdrop) */}
@@ -100,7 +140,7 @@ function HomePage() {
           </div>
         </ScrollReveal>
         <div className="grid md:grid-cols-3 gap-6">
-          {products.slice(0, 3).map((p, i) => (
+          {displayProducts.slice(0, 3).map((p, i) => (
             <ScrollReveal key={p.id} delay={i * 120}>
               <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
                 <div className="relative overflow-hidden rounded-2xl aspect-[4/5] bg-secondary">
@@ -139,7 +179,7 @@ function HomePage() {
           </div>
         </ScrollReveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((p, i) => (
+          {displayProducts.map((p, i) => (
             <ScrollReveal key={p.id} delay={i * 100}>
               <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
                 <div className="relative overflow-hidden rounded-xl aspect-square bg-secondary">

@@ -21,11 +21,6 @@ export const Route = createFileRoute("/api/orders")({
       },
       POST: async ({ request }: { request: Request }) => {
         try {
-          const isAuthorized = await verifyApiRequest(request);
-          if (!isAuthorized) {
-            return Response.json({ success: false, error: "Unauthorized access" }, { status: 401 });
-          }
-
           await connectToDatabase();
           const body = await request.json();
           

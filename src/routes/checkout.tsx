@@ -120,11 +120,17 @@ function CheckoutPage() {
 
       // save to MongoDB
       try {
-        await fetch("/api/orders", {
+        const mongoRes = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newOrder),
         });
+        if (!mongoRes.ok) {
+          const errData = await mongoRes.json().catch(() => ({}));
+          console.error("Failed to save order to MongoDB:", errData.error || mongoRes.statusText);
+        } else {
+          console.log("Successfully saved order to MongoDB");
+        }
       } catch (err) {
         console.error("Failed to save order to MongoDB:", err);
       }
