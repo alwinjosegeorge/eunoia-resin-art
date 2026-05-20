@@ -8,6 +8,15 @@ export interface IOrderTimeline {
   note?: string;
 }
 
+export interface IOrderAddress {
+  house?: string;
+  area?: string;
+  landmark?: string;
+  district?: string;
+  state?: string;
+  pin?: string;
+}
+
 export interface IOrder extends Document {
   id: string; // custom ID like "ERA-12345"
   customerName: string;
@@ -19,7 +28,7 @@ export interface IOrder extends Document {
   submissionMethod: "ship" | "upload" | string;
   shippingDate?: string;
   notes?: string;
-  address?: string;
+  address?: IOrderAddress;
   status: string;
   expectedCompletionDate?: string;
   previewImage?: string; // base64 string or image url
@@ -41,7 +50,14 @@ const OrderSchema: Schema = new Schema(
     submissionMethod: { type: String, required: true },
     shippingDate: { type: String },
     notes: { type: String },
-    address: { type: String },
+    address: {
+      house: { type: String },
+      area: { type: String },
+      landmark: { type: String },
+      district: { type: String },
+      state: { type: String },
+      pin: { type: String }
+    },
     status: { type: String, default: "Order Received", required: true, index: true },
     expectedCompletionDate: { type: String },
     previewImage: { type: String },
