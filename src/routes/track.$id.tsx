@@ -5,7 +5,6 @@ import { CheckCircle2, Circle, Clock, Package, Truck, ArrowLeft, Droplets, Paint
 import { createServerFn } from "@tanstack/react-start";
 
 const getOrderFromServer = createServerFn({ method: "GET" })
-  .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     try {
       const { connectToDatabase } = await import("@/lib/db");

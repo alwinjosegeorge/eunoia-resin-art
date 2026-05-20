@@ -7,7 +7,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 
 const getProductFromServer = createServerFn({ method: "GET" })
-  .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     try {
       const { connectToDatabase } = await import("@/lib/db");
