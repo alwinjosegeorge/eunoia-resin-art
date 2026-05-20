@@ -4,17 +4,37 @@ import { products, formatINR, pricingVariants } from "@/data/products";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
 import { Heart, ShieldCheck, Truck, Clock, Package, ArrowLeft } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+
+const getProductFromServer = createServerFn({ method: "GET" })
+  .validator((id: string) => id)
+  .handler(async ({ data: id }) => {
+    try {
+      const { connectToDatabase } = await import("@/lib/db");
+      const { Product } = await import("@/models/Product");
+
+      await connectToDatabase();
+      const product = await Product.findOne({ id }).lean();
+      if (product) {
+        const plainProduct = JSON.parse(JSON.stringify(product));
+        return { success: true, data: plainProduct };
+      }
+      return { success: false, error: "Product not found" };
+    } catch (err: any) {
+      console.error("Error in getProductFromServer:", err);
+      return { success: false, error: err.message || "Failed to fetch product" };
+    }
+  });
 
 export const Route = createFileRoute("/product/$id")({
   loader: async ({ params }) => {
     try {
-      const res = await fetch(`/api/products/${params.id}`);
-      if (res.ok) {
-        const product = await res.json();
-        if (product) return { product };
+      const res = await getProductFromServer({ data: params.id });
+      if (res && res.success && res.data) {
+        return { product: res.data };
       }
     } catch (err) {
-      console.error("Failed to load product from API, falling back to static:", err);
+      console.error("Failed to load product from server function, falling back to static:", err);
     }
     
     const product = products.find((p) => p.id === params.id);

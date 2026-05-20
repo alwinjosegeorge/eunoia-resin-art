@@ -2,8 +2,40 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
 import { CheckCircle2, Circle, Clock, Package, Truck, ArrowLeft, Droplets, Paintbrush, Sparkles } from "lucide-react";
+import { createServerFn } from "@tanstack/react-start";
+
+const getOrderFromServer = createServerFn({ method: "GET" })
+  .validator((id: string) => id)
+  .handler(async ({ data: id }) => {
+    try {
+      const { connectToDatabase } = await import("@/lib/db");
+      const { Order } = await import("@/models/Order");
+
+      await connectToDatabase();
+      const order = await Order.findOne({ id }).lean();
+      if (order) {
+        const plainOrder = JSON.parse(JSON.stringify(order));
+        return { success: true, data: plainOrder };
+      }
+      return { success: false, error: "Order not found" };
+    } catch (err: any) {
+      console.error("Error in getOrderFromServer:", err);
+      return { success: false, error: err.message || "Failed to fetch order" };
+    }
+  });
 
 export const Route = createFileRoute("/track/$id")({
+  loader: async ({ params }) => {
+    try {
+      const res = await getOrderFromServer({ data: params.id });
+      if (res && res.success && res.data) {
+        return { order: res.data };
+      }
+    } catch (err) {
+      console.error("Failed to load tracking order from server function:", err);
+    }
+    return { order: null };
+  },
   component: TrackOrderPage,
 });
 
@@ -22,10 +54,17 @@ const ALL_STAGES = [
 
 function TrackOrderPage() {
   const { id } = Route.useParams();
-  const [order, setOrder] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { order: initialOrder } = Route.useLoaderData();
+  const [order, setOrder] = useState<any>(initialOrder);
+  const [loading, setLoading] = useState(!initialOrder);
 
   useEffect(() => {
+    if (initialOrder) {
+      setOrder(initialOrder);
+      setLoading(false);
+      return;
+    }
+
     async function fetchOrder() {
       try {
         setLoading(true);
@@ -55,7 +94,7 @@ function TrackOrderPage() {
       }
     }
     fetchOrder();
-  }, [id]);
+  }, [id, initialOrder]);
 
   if (loading) {
     return <div className="min-h-[60vh] grid place-items-center"><div className="animate-pulse text-gold tracking-widest text-sm uppercase">Loading Tracking Data...</div></div>;
