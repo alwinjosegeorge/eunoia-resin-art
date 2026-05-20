@@ -62,8 +62,23 @@ function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedOrderId, setSubmittedOrderId] = useState("");
+  const [uploadedImage, setUploadedImage] = useState<string>("");
 
   const router = useRouter();
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { 
+      alert("Image is too large (maximum size is 2MB)"); 
+      return; 
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUploadedImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleNext = () => {
     if (step < steps.length - 1) {
@@ -115,6 +130,7 @@ function CheckoutPage() {
         address: address,
         status: "Order Received",
         expectedCompletionDate: expectedDate,
+        previewImage: uploadedImage,
         createdAt: new Date().toISOString()
       };
 
@@ -358,16 +374,50 @@ ${trackingLink}`;
 
                 {submissionMethod === "upload" && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="rounded-xl border-2 border-dashed border-border hover:border-gold p-6 text-center transition cursor-pointer bg-secondary/20">
-                        <Upload className="mx-auto h-6 w-6 text-gold mb-2" />
-                        <div className="text-xs font-medium">Upload Memory Photos</div>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      id="checkout-image-upload" 
+                      className="hidden" 
+                      onChange={handleImageUpload} 
+                    />
+
+                    {uploadedImage ? (
+                      <div className="relative rounded-2xl overflow-hidden border border-gold/40 bg-gold/5 p-6 flex flex-col items-center justify-center space-y-4">
+                        <div className="text-xs text-gold uppercase tracking-widest font-semibold flex items-center gap-1.5 animate-pulse">
+                          ✦ Image Selected Successfully
+                        </div>
+                        <div className="relative h-40 w-40 rounded-xl overflow-hidden border border-border shadow-soft bg-secondary/10">
+                          <img src={uploadedImage} alt="Uploaded reference memory" className="w-full h-full object-cover animate-in zoom-in-95 duration-300" />
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => setUploadedImage("")}
+                          className="px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 text-xs rounded-full font-medium transition active:scale-95"
+                        >
+                          Remove & Upload Different Image
+                        </button>
                       </div>
-                      <div className="rounded-xl border-2 border-dashed border-border hover:border-gold p-6 text-center transition cursor-pointer bg-secondary/20">
-                        <Upload className="mx-auto h-6 w-6 text-gold mb-2" />
-                        <div className="text-xs font-medium">Upload Reference Images</div>
+                    ) : (
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <label 
+                          htmlFor="checkout-image-upload"
+                          className="rounded-xl border-2 border-dashed border-border hover:border-gold p-6 text-center transition cursor-pointer bg-secondary/20 hover:bg-gold/5 flex flex-col items-center justify-center group"
+                        >
+                          <Upload className="mx-auto h-6 w-6 text-gold mb-2 group-hover:scale-110 transition duration-300" />
+                          <div className="text-xs font-medium">Upload Memory Photos</div>
+                          <span className="text-[10px] text-muted-foreground/60 mt-1">Select PNG, JPG (Max 2MB)</span>
+                        </label>
+                        <label 
+                          htmlFor="checkout-image-upload"
+                          className="rounded-xl border-2 border-dashed border-border hover:border-gold p-6 text-center transition cursor-pointer bg-secondary/20 hover:bg-gold/5 flex flex-col items-center justify-center group"
+                        >
+                          <Upload className="mx-auto h-6 w-6 text-gold mb-2 group-hover:scale-110 transition duration-300" />
+                          <div className="text-xs font-medium">Upload Reference Images</div>
+                          <span className="text-[10px] text-muted-foreground/60 mt-1">Select PNG, JPG (Max 2MB)</span>
+                        </label>
                       </div>
-                    </div>
+                    )}
 
                     <div className="space-y-4">
                       <div>
@@ -465,6 +515,14 @@ ${trackingLink}`;
                     <span className="text-muted-foreground">Submission Method</span>
                     <span className="font-medium capitalize">{submissionMethod === "ship" ? "Ship Real Flowers" : "Upload Images Only"}</span>
                   </div>
+                  {uploadedImage && (
+                    <div className="flex justify-between items-center py-1.5 border-t border-border/40 mt-1.5 pt-1.5">
+                      <span className="text-muted-foreground">Uploaded Photo</span>
+                      <div className="h-10 w-10 rounded-lg overflow-hidden border border-border bg-secondary/20 flex-shrink-0">
+                        <img src={uploadedImage} alt="Uploaded design reference" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  )}
                   {shippingDate && (
                     <div className="flex justify-between items-center py-1">
                       <span className="text-muted-foreground">Expected Shipping Date</span>

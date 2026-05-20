@@ -185,17 +185,24 @@ function TrackOrderPage() {
         </div>
       </ScrollReveal>
 
-      {/* Latest Production Photo */}
+      {/* Latest Production Photo or Uploaded Photo */}
       {order.previewImage && (
         <ScrollReveal delay={150}>
           <div className="glass-card rounded-3xl p-6 md:p-8 mb-12 border-gold/30 shadow-[0_0_20px_rgba(201,161,74,0.1)]">
             <h2 className="font-display text-2xl mb-4 flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-gold" /> Latest Production Photo
+              <Sparkles className="h-5 w-5 text-gold" />{" "}
+              {order.submissionMethod === "upload" && (order.status === "Order Received" || order.status === "Waiting For Images")
+                ? "Your Uploaded Memory Photo"
+                : "Latest Production Photo"}
             </h2>
             <div className="rounded-2xl overflow-hidden border border-border">
               <img src={order.previewImage} alt="Production Update" className="w-full h-auto max-h-[400px] object-cover" />
             </div>
-            <p className="mt-4 text-xs text-muted-foreground uppercase tracking-wider text-center">Preview from Manjima Studio</p>
+            <p className="mt-4 text-xs text-muted-foreground uppercase tracking-wider text-center">
+              {order.submissionMethod === "upload" && (order.status === "Order Received" || order.status === "Waiting For Images")
+                ? "This memory/reference photo will be beautifully embedded in your resin art"
+                : "Preview from Manjima Studio"}
+            </p>
           </div>
         </ScrollReveal>
       )}
