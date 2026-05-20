@@ -14,6 +14,21 @@ export default defineConfig({
     ssr: {
       external: ["mongoose", "mongodb"],
     },
+    plugins: [
+      {
+        name: "replace-mongodb-require",
+        transform(code, id, options) {
+          // Scope transform to only target database files loaded during server-side build (SSR)
+          if (options?.ssr && (id.includes("mongodb") || id.includes("mongoose"))) {
+            return {
+              code: code.replace(/\brequire\(/g, "globalThis.require?.("),
+              map: null,
+            };
+          }
+          return null;
+        },
+      },
+    ],
   },
 });
 

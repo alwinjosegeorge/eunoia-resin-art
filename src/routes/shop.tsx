@@ -26,7 +26,8 @@ function ShopPage() {
       try {
         const res = await fetch("/api/products");
         if (res.ok) {
-          const data = await res.json();
+          const resData = await res.json();
+          const data = resData.success ? resData.data : resData;
           // Filter only active products
           const activeOnly = data.filter((p: any) => p.status === "active" || p.status === "Featured" || p.status === "active" || !p.status);
           

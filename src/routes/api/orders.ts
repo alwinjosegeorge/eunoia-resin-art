@@ -1,8 +1,9 @@
 import "@/lib/require-polyfill";
 import { createFileRoute } from "@tanstack/react-router";
-
 import { connectToDatabase } from "@/lib/db";
 import { Order } from "@/models/Order";
+import { verifyApiRequest } from "@/lib/auth-middleware";
+import { sanitizeImageField } from "@/lib/images";
 
 export const Route = createFileRoute("/api/orders")({
   server: {
@@ -11,20 +12,34 @@ export const Route = createFileRoute("/api/orders")({
         try {
           await connectToDatabase();
           const orders = await Order.find({}).sort({ createdAt: -1 });
-          return Response.json(orders);
+          return Response.json({ success: true, data: orders });
         } catch (error: any) {
           console.error("API Orders GET error:", error);
-          return Response.json({ error: error.message || "Failed to fetch orders", stack: error.stack }, { status: 500 });
+          return Response.json({ success: false, error: error.message || "Failed to fetch orders" }, { status: 500 });
         }
       },
       POST: async ({ request }: { request: Request }) => {
         try {
+          const isAuthorized = await verifyApiRequest(request);
+          if (!isAuthorized) {
+            return Response.json({ success: false, error: "Unauthorized access" }, { status: 401 });
+          }
+
           await connectToDatabase();
           const body = await request.json();
           
           if (!body.id || !body.customerName || !body.customerPhone) {
-            return Response.json({ error: "Missing required order fields" }, { status: 400 });
+            return Response.json({ success: false, error: "Missing required order fields" }, { status: 400 });
           }
+
+          const initialStatus = body.status || "Order Received";
+          const timeline = [
+            {
+              status: initialStatus,
+              timestamp: new Date(),
+              note: body.notes || "Order placed successfully."
+            }
+          ];
 
           // Create the order in the database
           const newOrder = await Order.create({
@@ -39,18 +54,19 @@ export const Route = createFileRoute("/api/orders")({
             shippingDate: body.shippingDate,
             notes: body.notes,
             address: body.address,
-            status: body.status || "Order Received",
+            status: initialStatus,
             expectedCompletionDate: body.expectedCompletionDate,
-            previewImage: body.previewImage,
+            previewImage: sanitizeImageField(body.previewImage, body.productName),
             adminNotes: body.adminNotes,
             courierDetails: body.courierDetails,
-            createdAt: body.createdAt ? new Date(body.createdAt) : new Date()
+            createdAt: body.createdAt ? new Date(body.createdAt) : new Date(),
+            timeline: timeline
           });
 
-          return Response.json(newOrder, { status: 201 });
+          return Response.json({ success: true, data: newOrder }, { status: 201 });
         } catch (error: any) {
           console.error("API Orders POST error:", error);
-          return Response.json({ error: error.message || "Failed to create order", stack: error.stack }, { status: 500 });
+          return Response.json({ success: false, error: error.message || "Failed to create order" }, { status: 500 });
         }
       }
     }

@@ -1,6 +1,11 @@
 import "../lib/require-polyfill";
 import mongoose, { Schema, Document } from "mongoose";
 
+export interface IOrderTimeline {
+  status: string;
+  timestamp: Date;
+  note?: string;
+}
 
 export interface IOrder extends Document {
   id: string; // custom ID like "ERA-12345"
@@ -20,6 +25,7 @@ export interface IOrder extends Document {
   adminNotes?: string;
   courierDetails?: string;
   createdAt: Date;
+  timeline?: IOrderTimeline[];
 }
 
 const OrderSchema: Schema = new Schema(
@@ -35,12 +41,19 @@ const OrderSchema: Schema = new Schema(
     shippingDate: { type: String },
     notes: { type: String },
     address: { type: String },
-    status: { type: String, default: "Order Received", required: true },
+    status: { type: String, default: "Order Received", required: true, index: true },
     expectedCompletionDate: { type: String },
     previewImage: { type: String },
     adminNotes: { type: String },
     courierDetails: { type: String },
-    createdAt: { type: Date, default: Date.now, required: true }
+    createdAt: { type: Date, default: Date.now, required: true, index: true },
+    timeline: [
+      {
+        status: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now, required: true },
+        note: { type: String }
+      }
+    ]
   },
   {
     timestamps: false // We manage createdAt explicitly

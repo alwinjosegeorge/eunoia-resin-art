@@ -1,15 +1,21 @@
 import "@/lib/require-polyfill";
 import { createFileRoute } from "@tanstack/react-router";
-
 import { connectToDatabase } from "@/lib/db";
 import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
+import { verifyApiRequest } from "@/lib/auth-middleware";
+import { sanitizeImageField, sanitizeGalleryFields } from "@/lib/images";
 
 export const Route = createFileRoute("/api/sync")({
   server: {
     handlers: {
       POST: async ({ request }: { request: Request }) => {
         try {
+          const isAuthorized = await verifyApiRequest(request);
+          if (!isAuthorized) {
+            return Response.json({ success: false, error: "Unauthorized access" }, { status: 401 });
+          }
+
           await connectToDatabase();
           const { orders = [], products = [] } = await request.json();
 
@@ -22,6 +28,15 @@ export const Route = createFileRoute("/api/sync")({
             
             const existingOrder = await Order.findOne({ id: orderData.id });
             if (!existingOrder) {
+              const initialStatus = orderData.status || "Order Received";
+              const timeline = orderData.timeline || [
+                {
+                  status: initialStatus,
+                  timestamp: orderData.createdAt ? new Date(orderData.createdAt) : new Date(),
+                  note: "Order initialized during synchronization."
+                }
+              ];
+
               await Order.create({
                 id: orderData.id,
                 customerName: orderData.customerName,
@@ -34,12 +49,13 @@ export const Route = createFileRoute("/api/sync")({
                 shippingDate: orderData.shippingDate,
                 notes: orderData.notes,
                 address: orderData.address,
-                status: orderData.status || "Order Received",
+                status: initialStatus,
                 expectedCompletionDate: orderData.expectedCompletionDate,
-                previewImage: orderData.previewImage,
+                previewImage: sanitizeImageField(orderData.previewImage, orderData.productName),
                 adminNotes: orderData.adminNotes,
                 courierDetails: orderData.courierDetails,
-                createdAt: orderData.createdAt ? new Date(orderData.createdAt) : new Date()
+                createdAt: orderData.createdAt ? new Date(orderData.createdAt) : new Date(),
+                timeline: timeline
               });
               syncedOrdersCount++;
             }
@@ -57,9 +73,9 @@ export const Route = createFileRoute("/api/sync")({
                 category: productData.category,
                 subtitle: productData.subtitle,
                 description: productData.description,
-                image: productData.image,
-                gallery: productData.gallery || [],
-                hoverImage: productData.hoverImage,
+                image: sanitizeImageField(productData.image, productData.category),
+                gallery: sanitizeGalleryFields(productData.gallery, productData.category),
+                hoverImage: sanitizeImageField(productData.hoverImage, productData.category),
                 selectedSizes: productData.selectedSizes || [],
                 selectedDepths: productData.selectedDepths || [],
                 pricingMatrix: productData.pricingMatrix || [],
@@ -83,13 +99,15 @@ export const Route = createFileRoute("/api/sync")({
 
           return Response.json({
             success: true,
-            syncedOrders: syncedOrdersCount,
-            syncedProducts: syncedProductsCount,
+            data: {
+              syncedOrders: syncedOrdersCount,
+              syncedProducts: syncedProductsCount,
+            },
             message: `Successfully synced ${syncedOrdersCount} orders and ${syncedProductsCount} products!`
           });
         } catch (error: any) {
           console.error("API Sync error:", error);
-          return Response.json({ error: error.message || "Failed to sync data" }, { status: 500 });
+          return Response.json({ success: false, error: error.message || "Failed to sync data" }, { status: 500 });
         }
       }
     }

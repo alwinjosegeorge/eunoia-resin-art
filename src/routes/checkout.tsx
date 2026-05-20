@@ -28,7 +28,8 @@ function CheckoutPage() {
     if (search.isDbProduct === "true") {
       fetch(`/api/products/${variantId}`)
         .then(res => res.json())
-        .then(data => {
+        .then(resData => {
+          const data = resData.success ? resData.data : resData;
           if (data && !data.error) {
             setDbProduct(data);
           }

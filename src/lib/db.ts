@@ -10,14 +10,15 @@ interface MongooseCache {
   promise: Promise<typeof mongoose> | null;
 }
 
-let cached: MongooseCache = (global as any).mongoose;
+let cached: MongooseCache = (globalThis as any).mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+  cached = (globalThis as any).mongoose = { conn: null, promise: null };
 }
 
 export async function connectToDatabase() {
   if (cached.conn) {
+    console.log("Using cached MongoDB connection");
     return cached.conn;
   }
 
@@ -26,8 +27,9 @@ export async function connectToDatabase() {
       bufferCommands: false,
     };
 
+    console.log("Initializing new MongoDB connection to Atlas...");
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
-      console.log("Connected to MongoDB Atlas successful!");
+      console.log("Connected to MongoDB Atlas successfully!");
       return mongooseInstance;
     });
   }

@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/memory-quote")({
         } catch {}
 
         const quote = FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)];
-        return Response.json({ quote });
+        return Response.json({ success: true, data: { quote } });
       },
     },
   },

@@ -31,7 +31,8 @@ function TrackOrderPage() {
         setLoading(true);
         const res = await fetch(`/api/orders/${id}`);
         if (res.ok) {
-          const data = await res.json();
+          const resData = await res.json();
+          const data = resData.success ? resData.data : resData;
           setOrder(data);
         } else {
           // Fallback to localStorage
@@ -157,6 +158,46 @@ function TrackOrderPage() {
               <img src={order.previewImage} alt="Production Update" className="w-full h-auto max-h-[400px] object-cover" />
             </div>
             <p className="mt-4 text-xs text-muted-foreground uppercase tracking-wider text-center">Preview from Manjima Studio</p>
+          </div>
+        </ScrollReveal>
+      )}
+
+      {/* Dynamic Milestones Timeline */}
+      {order.timeline && order.timeline.length > 0 && (
+        <ScrollReveal delay={180}>
+          <div className="glass-card rounded-3xl p-6 md:p-8 mb-12 border border-gold/20 shadow-[0_0_20px_rgba(201,161,74,0.05)]">
+            <h2 className="font-display text-2xl mb-8 flex items-center gap-3 text-gold">
+              <Sparkles className="h-5 w-5" /> Production Progress History
+            </h2>
+            <div className="relative space-y-8 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-border/60">
+              {order.timeline.map((item: any, index: number) => {
+                const isLatest = index === order.timeline.length - 1;
+                return (
+                  <div key={index} className="relative flex gap-6">
+                    {/* Circle Node */}
+                    <div className={`z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background shadow-sm ring-1 ${isLatest ? 'ring-gold text-gold bg-gold/5 animate-pulse' : 'ring-border text-muted-foreground'}`}>
+                      <CheckCircle2 className="h-4 w-4" />
+                    </div>
+                    {/* Progress Info */}
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h4 className={`text-sm font-semibold tracking-wide ${isLatest ? 'text-gold' : 'text-foreground/80'}`}>{item.status}</h4>
+                        <span className="text-[10px] text-muted-foreground font-mono">
+                          {item.timestamp ? new Date(item.timestamp).toLocaleDateString("en-IN", { 
+                            day: 'numeric', 
+                            month: 'short', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : ""}
+                        </span>
+                      </div>
+                      <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed italic">{item.note || `Order status updated to ${item.status}.`}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </ScrollReveal>
       )}

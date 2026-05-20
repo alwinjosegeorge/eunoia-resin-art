@@ -25,6 +25,7 @@ import { Route as ApiSyncRouteImport } from './routes/api/sync'
 import { Route as ApiProductsRouteImport } from './routes/api/products'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiMemoryQuoteRouteImport } from './routes/api/memory-quote'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiProductsIdRouteImport } from './routes/api/products.$id'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 
@@ -108,6 +109,11 @@ const ApiMemoryQuoteRoute = ApiMemoryQuoteRouteImport.update({
   path: '/api/memory-quote',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiProductsIdRoute = ApiProductsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding': typeof WeddingRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/memory-quote': typeof ApiMemoryQuoteRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/products': typeof ApiProductsRouteWithChildren
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding': typeof WeddingRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/memory-quote': typeof ApiMemoryQuoteRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/products': typeof ApiProductsRouteWithChildren
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding': typeof WeddingRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/memory-quote': typeof ApiMemoryQuoteRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/products': typeof ApiProductsRouteWithChildren
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/sitemap.xml'
     | '/wedding'
+    | '/api/health'
     | '/api/memory-quote'
     | '/api/orders'
     | '/api/products'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/sitemap.xml'
     | '/wedding'
+    | '/api/health'
     | '/api/memory-quote'
     | '/api/orders'
     | '/api/products'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/sitemap.xml'
     | '/wedding'
+    | '/api/health'
     | '/api/memory-quote'
     | '/api/orders'
     | '/api/products'
@@ -254,6 +266,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WeddingRoute: typeof WeddingRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiMemoryQuoteRoute: typeof ApiMemoryQuoteRoute
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiProductsRoute: typeof ApiProductsRouteWithChildren
@@ -376,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMemoryQuoteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/products/$id': {
       id: '/api/products/$id'
       path: '/$id'
@@ -428,6 +448,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   WeddingRoute: WeddingRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiMemoryQuoteRoute: ApiMemoryQuoteRoute,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiProductsRoute: ApiProductsRouteWithChildren,

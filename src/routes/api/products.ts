@@ -1,8 +1,9 @@
 import "@/lib/require-polyfill";
 import { createFileRoute } from "@tanstack/react-router";
-
 import { connectToDatabase } from "@/lib/db";
 import { Product } from "@/models/Product";
+import { verifyApiRequest } from "@/lib/auth-middleware";
+import { sanitizeImageField, sanitizeGalleryFields } from "@/lib/images";
 
 export const Route = createFileRoute("/api/products")({
   server: {
@@ -11,25 +12,29 @@ export const Route = createFileRoute("/api/products")({
         try {
           await connectToDatabase();
           const products = await Product.find({}).sort({ createdAt: -1 });
-          return Response.json(products);
+          return Response.json({ success: true, data: products });
         } catch (error: any) {
           console.error("API Products GET error:", error);
-          return Response.json({ error: error.message || "Failed to fetch products" }, { status: 500 });
+          return Response.json({ success: false, error: error.message || "Failed to fetch products" }, { status: 500 });
         }
       },
       POST: async ({ request }: { request: Request }) => {
         try {
+          const isAuthorized = await verifyApiRequest(request);
+          if (!isAuthorized) {
+            return Response.json({ success: false, error: "Unauthorized access" }, { status: 401 });
+          }
+
           await connectToDatabase();
           const body = await request.json();
 
           if (!body.id || !body.name || !body.category) {
-            return Response.json({ error: "Missing required product fields" }, { status: 400 });
+            return Response.json({ success: false, error: "Missing required product fields" }, { status: 400 });
           }
 
-          // Check if product with this ID already exists
           const existingProduct = await Product.findOne({ id: body.id });
           if (existingProduct) {
-            return Response.json({ error: "Product with this ID/slug already exists" }, { status: 400 });
+            return Response.json({ success: false, error: "Product with this ID/slug already exists" }, { status: 400 });
           }
 
           const newProduct = await Product.create({
@@ -38,9 +43,9 @@ export const Route = createFileRoute("/api/products")({
             category: body.category,
             subtitle: body.subtitle,
             description: body.description,
-            image: body.image,
-            gallery: body.gallery || [],
-            hoverImage: body.hoverImage,
+            image: sanitizeImageField(body.image, body.category),
+            gallery: sanitizeGalleryFields(body.gallery, body.category),
+            hoverImage: sanitizeImageField(body.hoverImage, body.category),
             selectedSizes: body.selectedSizes || [],
             selectedDepths: body.selectedDepths || [],
             pricingMatrix: body.pricingMatrix || [],
@@ -59,10 +64,10 @@ export const Route = createFileRoute("/api/products")({
             createdAt: body.createdAt ? new Date(body.createdAt) : new Date()
           });
 
-          return Response.json(newProduct, { status: 201 });
+          return Response.json({ success: true, data: newProduct }, { status: 201 });
         } catch (error: any) {
           console.error("API Products POST error:", error);
-          return Response.json({ error: error.message || "Failed to create product" }, { status: 500 });
+          return Response.json({ success: false, error: error.message || "Failed to create product" }, { status: 500 });
         }
       }
     }

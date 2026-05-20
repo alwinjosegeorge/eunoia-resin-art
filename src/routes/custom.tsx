@@ -67,7 +67,8 @@ function CustomPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ story }),
       });
-      const data = await res.json();
+      const resData = await res.json();
+      const data = resData.success ? resData.data : resData;
       setQuote(data.quote || "");
     } catch {
       setQuote("Some flowers never fade, because the memories they hold never die.");

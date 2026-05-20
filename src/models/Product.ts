@@ -62,11 +62,11 @@ const ProductSchema: Schema = new Schema(
     showProductionTime: { type: Boolean, default: true },
     showShipping: { type: Boolean, default: true },
     showPayment: { type: Boolean, default: true },
-    status: { type: String, default: "active", required: true },
+    status: { type: String, default: "active", required: true, index: true },
     metaTitle: { type: String },
     metaDesc: { type: String },
-    slug: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now, required: true }
+    slug: { type: String, required: true, index: true },
+    createdAt: { type: Date, default: Date.now, required: true, index: true }
   },
   {
     timestamps: false

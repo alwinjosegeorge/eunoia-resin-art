@@ -106,29 +106,34 @@ function DashboardPage() {
 
   const [loading, setLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   const fetchDbData = async () => {
     setLoading(true);
+    setDashboardError(null);
     try {
       const ordersRes = await fetch("/api/orders");
-      if (ordersRes.ok) {
-        const ordersData = await ordersRes.json();
-        setOrders(ordersData);
+      const ordersData = await ordersRes.json();
+      if (ordersRes.ok && ordersData.success !== false) {
+        setOrders(ordersData.success ? ordersData.data : ordersData);
       } else {
-        const errMsg = await parseFetchError(ordersRes, "Failed to load orders from MongoDB.");
+        const errMsg = ordersData.error || "Failed to load orders from MongoDB.";
+        setDashboardError(errMsg);
         console.error(errMsg);
       }
       
       const productsRes = await fetch("/api/products");
-      if (productsRes.ok) {
-        const productsData = await productsRes.json();
-        setSavedProducts(productsData);
+      const productsData = await productsRes.json();
+      if (productsRes.ok && productsData.success !== false) {
+        setSavedProducts(productsData.success ? productsData.data : productsData);
       } else {
-        const errMsg = await parseFetchError(productsRes, "Failed to load products from MongoDB.");
+        const errMsg = productsData.error || "Failed to load products from MongoDB.";
+        setDashboardError(prev => prev || errMsg);
         console.error(errMsg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load dashboard data from MongoDB:", err);
+      setDashboardError(err?.message || "Failed to connect to the Eunoia Cloud Database. Check your internet connection and MongoDB credentials.");
     } finally {
       setLoading(false);
     }
@@ -159,12 +164,13 @@ function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updated),
       });
-      if (res.ok) {
-        const savedData = await res.json();
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
+        const savedData = data.success ? data.data : data;
         const next = orders.map(o => o.id === savedData.id ? savedData : o);
         setOrders(next); setSelectedOrder(savedData);
       } else {
-        const errMsg = await parseFetchError(res, "Failed to save order changes to MongoDB.");
+        const errMsg = data.error || "Failed to save order changes to MongoDB.";
         alert(errMsg);
       }
     } catch (err: any) {
@@ -190,12 +196,13 @@ function DashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(product),
         });
-        if (res.ok) {
-          const updated = await res.json();
+        const data = await res.json();
+        if (res.ok && data.success !== false) {
+          const updated = data.success ? data.data : data;
           const next = savedProducts.map(p => p.id === product.id ? updated : p);
           setSavedProducts(next);
         } else {
-          const errMsg = await parseFetchError(res, "Failed to update product in MongoDB.");
+          const errMsg = data.error || "Failed to update product in MongoDB.";
           alert(errMsg);
           return;
         }
@@ -206,11 +213,12 @@ function DashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(product),
         });
-        if (res.ok) {
-          const created = await res.json();
+        const data = await res.json();
+        if (res.ok && data.success !== false) {
+          const created = data.success ? data.data : data;
           setSavedProducts([created, ...savedProducts]);
         } else {
-          const errMsg = await parseFetchError(res, "Failed to create product in MongoDB.");
+          const errMsg = data.error || "Failed to create product in MongoDB.";
           alert(errMsg);
           return;
         }
@@ -228,11 +236,12 @@ function DashboardPage() {
       const res = await fetch(`/api/products/${id}`, {
         method: "DELETE",
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
         const next = savedProducts.filter(p => p.id !== id);
         setSavedProducts(next);
       } else {
-        const errMsg = await parseFetchError(res, "Failed to delete product from MongoDB.");
+        const errMsg = data.error || "Failed to delete product from MongoDB.";
         alert(errMsg);
       }
     } catch (err: any) {
@@ -264,14 +273,14 @@ function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orders: localOrders, products: localProducts }),
       });
-      if (res.ok) {
-        const result = await res.json();
-        alert(result.message || "Sync completed successfully!");
+      const data = await res.json();
+      if (res.ok && data.success !== false) {
+        alert(data.message || "Sync completed successfully!");
         localStorage.removeItem("era_orders");
         localStorage.removeItem("era_products");
         await fetchDbData();
       } else {
-        const errMsg = await parseFetchError(res, "Sync failed.");
+        const errMsg = data.error || "Sync failed.";
         alert(`Sync failed: ${errMsg}`);
       }
     } catch (err: any) {
@@ -392,7 +401,11 @@ function DashboardPage() {
 
         {/* MAIN CONTENT */}
         <main className="flex-1 overflow-auto pb-24 lg:pb-0">
-          {activeTab === "orders" ? (
+          {loading ? (
+            <LuxurySkeletonLoader />
+          ) : dashboardError ? (
+            <PremiumErrorState error={dashboardError} onRetry={fetchDbData} />
+          ) : activeTab === "orders" ? (
             <div className="p-4 md:p-8 lg:p-12 max-w-6xl mx-auto space-y-6 md:space-y-10">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -668,9 +681,18 @@ function OrderEditor({ order, onSave, onImageUpload, whatsAppLink }: {
               </div>
             </div>
           ) : (
-            <div className="relative w-full h-20 border-2 border-dashed border-border rounded-xl flex items-center justify-center hover:border-gold transition cursor-pointer bg-secondary/30">
-              <input type="file" accept="image/*" onChange={onImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Upload Preview Photo</span>
+            <div className="space-y-2">
+              <div className="relative w-full h-20 border-2 border-dashed border-border rounded-xl flex items-center justify-center hover:border-gold transition cursor-pointer bg-secondary/30">
+                <input type="file" accept="image/*" onChange={onImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Upload Preview Photo</span>
+              </div>
+              <input 
+                type="text" 
+                value={order.previewImage || ""} 
+                onChange={e => onSave({ ...order, previewImage: e.target.value })} 
+                placeholder="Or paste Direct Image URL..." 
+                className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-gold transition-colors" 
+              />
             </div>
           )}
         </div>
@@ -841,7 +863,7 @@ function ProductForm({ initialData, onSave, onCancel }: {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Main & Hover Images */}
               <div className="space-y-4">
-                <Field label="Main Thumbnail" hint="Main display photo (max 2 MB)">
+                <Field label="Main Thumbnail" hint="Upload file or enter direct URL">
                   {image ? (
                     <div className="relative rounded-xl overflow-hidden border border-border group w-full max-w-[200px] aspect-[4/5] bg-secondary/30 mt-1">
                       <img src={image} alt="Main Thumbnail" className="w-full h-full object-cover" />
@@ -850,16 +872,19 @@ function ProductForm({ initialData, onSave, onCancel }: {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative w-full h-28 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition cursor-pointer bg-secondary/10 mt-1 group">
-                      <input type="file" accept="image/*" onChange={handleProductImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                      <Upload className="h-5 w-5 text-muted-foreground group-hover:text-gold mb-1.5 transition-colors" />
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-gold transition-colors">Upload Main Thumbnail</span>
-                      <span className="text-[8px] text-muted-foreground/60 mt-0.5">PNG, JPG, WebP up to 2MB</span>
+                    <div className="space-y-2 mt-1">
+                      <div className="relative w-full h-28 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition cursor-pointer bg-secondary/10 group">
+                        <input type="file" accept="image/*" onChange={handleProductImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                        <Upload className="h-5 w-5 text-muted-foreground group-hover:text-gold mb-1.5 transition-colors" />
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-gold transition-colors">Upload Main Thumbnail</span>
+                        <span className="text-[8px] text-muted-foreground/60 mt-0.5">PNG, JPG, WebP up to 2MB</span>
+                      </div>
+                      <input type="text" value={image} onChange={e => setImage(e.target.value)} placeholder="Or paste Direct Image URL..." className="w-full bg-secondary/20 border border-border rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-gold transition-colors" />
                     </div>
                   )}
                 </Field>
 
-                <Field label="Hover Image (Optional)" hint="Secondary swap photo (max 2 MB)">
+                <Field label="Hover Image (Optional)" hint="Upload file or enter direct URL">
                   {hoverImage ? (
                     <div className="relative rounded-xl overflow-hidden border border-border group w-full max-w-[200px] aspect-[4/5] bg-secondary/30 mt-1">
                       <img src={hoverImage} alt="Hover Image" className="w-full h-full object-cover" />
@@ -868,11 +893,14 @@ function ProductForm({ initialData, onSave, onCancel }: {
                       </div>
                     </div>
                   ) : (
-                    <div className="relative w-full h-28 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition cursor-pointer bg-secondary/10 mt-1 group">
-                      <input type="file" accept="image/*" onChange={handleHoverImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                      <Upload className="h-5 w-5 text-muted-foreground group-hover:text-gold mb-1.5 transition-colors" />
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-gold transition-colors">Upload Hover Image</span>
-                      <span className="text-[8px] text-muted-foreground/60 mt-0.5">PNG, JPG, WebP up to 2MB</span>
+                    <div className="space-y-2 mt-1">
+                      <div className="relative w-full h-28 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition cursor-pointer bg-secondary/10 group">
+                        <input type="file" accept="image/*" onChange={handleHoverImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                        <Upload className="h-5 w-5 text-muted-foreground group-hover:text-gold mb-1.5 transition-colors" />
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-gold transition-colors">Upload Hover Image</span>
+                        <span className="text-[8px] text-muted-foreground/60 mt-0.5">PNG, JPG, WebP up to 2MB</span>
+                      </div>
+                      <input type="text" value={hoverImage} onChange={e => setHoverImage(e.target.value)} placeholder="Or paste Direct Hover Image URL..." className="w-full bg-secondary/20 border border-border rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-gold transition-colors" />
                     </div>
                   )}
                 </Field>
@@ -883,11 +911,53 @@ function ProductForm({ initialData, onSave, onCancel }: {
                 <Field label="Gallery Images" hint={`Upload up to 6 gallery photos (${gallery.length}/6)`}>
                   <div className="mt-2 space-y-4">
                     {gallery.length < 6 && (
-                      <div className="relative w-full h-24 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition cursor-pointer bg-secondary/10 group">
-                        <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                        <Upload className="h-5 w-5 text-muted-foreground group-hover:text-gold mb-1 transition-colors" />
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-gold transition-colors">Upload Gallery Images</span>
-                        <span className="text-[8px] text-muted-foreground/60 mt-0.5">Select one or multiple images</span>
+                      <div className="space-y-2">
+                        <div className="relative w-full h-24 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center hover:border-gold hover:bg-gold/5 transition cursor-pointer bg-secondary/10 group">
+                          <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                          <Upload className="h-5 w-5 text-muted-foreground group-hover:text-gold mb-1 transition-colors" />
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-gold transition-colors">Upload Gallery Images</span>
+                          <span className="text-[8px] text-muted-foreground/60 mt-0.5">Select one or multiple images</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            id="gallery-direct-url"
+                            placeholder="Or paste Direct Gallery Image URL and click add..." 
+                            className="flex-1 bg-secondary/20 border border-border rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-gold transition-colors"
+                            onKeyDown={e => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const val = (e.target as HTMLInputElement).value.trim();
+                                if (val) {
+                                  if (gallery.length >= 6) {
+                                    alert("Maximum 6 gallery images allowed.");
+                                    return;
+                                  }
+                                  setGallery(prev => [...prev, val]);
+                                  (e.target as HTMLInputElement).value = "";
+                                }
+                              }
+                            }}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              const el = document.getElementById("gallery-direct-url") as HTMLInputElement;
+                              const val = el?.value.trim();
+                              if (val) {
+                                if (gallery.length >= 6) {
+                                  alert("Maximum 6 gallery images allowed.");
+                                  return;
+                                }
+                                setGallery(prev => [...prev, val]);
+                                el.value = "";
+                              }
+                            }}
+                            className="bg-gold text-primary-foreground text-xs uppercase tracking-widest px-4 rounded-xl hover:opacity-90 active:scale-95 transition"
+                          >
+                            Add
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -1228,6 +1298,100 @@ function ProductPreviewCard({ name, category, subtitle, badge, status, slug, sel
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function LuxurySkeletonLoader() {
+  return (
+    <div className="p-4 md:p-8 lg:p-12 max-w-6xl mx-auto space-y-6 md:space-y-10 animate-pulse">
+      {/* Header Skeleton */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-2">
+          <div className="h-8 w-48 bg-secondary/50 rounded-xl" />
+          <div className="h-4 w-64 bg-secondary/30 rounded-lg" />
+        </div>
+        <div className="text-right hidden sm:block space-y-2">
+          <div className="h-4 w-32 bg-secondary/40 ml-auto rounded-lg" />
+          <div className="h-3.5 w-24 bg-secondary/30 ml-auto rounded-lg" />
+        </div>
+      </div>
+
+      {/* Grid Stats Skeleton */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="glass-card p-4 rounded-2xl border border-border/60 bg-secondary/10 space-y-3">
+            <div className="h-3 w-16 bg-secondary/40 rounded" />
+            <div className="h-8 w-12 bg-secondary/60 rounded-lg" />
+          </div>
+        ))}
+      </div>
+
+      {/* Main Grid Skeleton */}
+      <div className="grid lg:grid-cols-[1fr_400px] gap-6 items-start">
+        <div className="glass-card rounded-2xl border border-border/60 overflow-hidden bg-secondary/5">
+          <div className="p-4 md:p-6 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="h-6 w-36 bg-secondary/50 rounded-lg" />
+            <div className="h-9 w-48 bg-secondary/30 rounded-full" />
+          </div>
+          <div className="p-4 space-y-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
+                <div className="space-y-2 flex-1">
+                  <div className="flex gap-2 items-center">
+                    <div className="h-3.5 w-20 bg-secondary/50 rounded" />
+                    <div className="h-3.5 w-16 bg-secondary/30 rounded-full" />
+                  </div>
+                  <div className="h-5 w-40 bg-secondary/60 rounded-md" />
+                  <div className="h-3.5 w-32 bg-secondary/40 rounded" />
+                </div>
+                <div className="h-4 w-4 bg-secondary/40 rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="glass-card rounded-3xl border border-border/60 p-6 space-y-6 bg-secondary/5">
+          <div className="space-y-3">
+            <div className="h-4 w-24 bg-secondary/40 rounded" />
+            <div className="h-6 w-full bg-secondary/50 rounded-lg" />
+            <div className="h-4 w-3/4 bg-secondary/30 rounded-lg" />
+          </div>
+          <div className="space-y-4 pt-4 border-t border-border/40">
+            <div className="h-10 w-full bg-secondary/40 rounded-xl" />
+            <div className="h-10 w-full bg-secondary/40 rounded-xl" />
+            <div className="h-12 w-full bg-secondary/50 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PremiumErrorState({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return (
+    <div className="p-4 md:p-8 lg:p-12 max-w-2xl mx-auto min-h-[70vh] flex items-center justify-center">
+      <div className="glass-card rounded-[2.5rem] border border-red-500/20 bg-red-950/5 p-8 md:p-12 text-center space-y-6 shadow-[0_20px_50px_-12px_rgba(239,68,68,0.1)] max-w-md w-full relative overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-red-500/40 to-transparent" />
+        <div className="h-16 w-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto border border-red-500/20 text-red-500 animate-pulse">
+          <Database className="h-7 w-7" />
+        </div>
+        <div className="space-y-2">
+          <div className="text-[10px] tracking-[0.4em] text-red-500 uppercase font-semibold">Database Connection Failure</div>
+          <h2 className="font-display text-2xl text-foreground">Could not connect to Eunoia Cloud</h2>
+          <p className="text-muted-foreground text-xs leading-relaxed max-w-sm mx-auto">
+            {error || "An unexpected error occurred while communicating with the MongoDB Cloud Database. Please make sure MONGODB_URI is configured correctly in Vercel."}
+          </p>
+        </div>
+        <div className="pt-4 space-y-3">
+          <button onClick={onRetry} className="w-full flex items-center justify-center gap-2 bg-foreground text-background hover:bg-gold hover:text-primary-foreground font-medium rounded-2xl py-3.5 text-xs tracking-[0.2em] uppercase transition-all shadow-lg active:scale-98">
+            <RefreshCw className="h-4 w-4" /> Reconnect to Cloud
+          </button>
+          <a href="/api/health" target="_blank" className="block text-xs text-muted-foreground hover:text-gold transition">
+            Check API Health Endpoint
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
