@@ -12,7 +12,7 @@ export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
 });
 
-const steps = ["Memory Method", "Customer Details", "Delivery Address", "Important Notice", "Confirmation"];
+const steps = ["Memory Method", "Customer Details", "Delivery Address", "Confirmation"];
 
 function CheckoutPage() {
   const search: any = Route.useSearch();
@@ -352,39 +352,96 @@ ${trackingLink}`;
             </ScrollReveal>
           )}
 
-          {/* STEP 4: Important Notice */}
+          {/* STEP 4: Confirmation */}
           {step === 3 && (
             <ScrollReveal>
               <div className="glass-card rounded-2xl p-6 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                <h3 className="font-display text-2xl flex items-center gap-3"><AlertCircle className="h-6 w-6 text-gold" /> Important Notice</h3>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="p-5 rounded-xl border border-border bg-secondary/30 flex flex-col items-center text-center gap-3 hover:border-gold/50 transition">
-                    <Clock className="h-6 w-6 text-gold" />
-                    <h4 className="font-medium text-sm">Production Time</h4>
-                    <p className="text-xs text-muted-foreground">30–35 Working Days<br/>(Saturdays & Sundays excluded)</p>
+                <h3 className="font-display text-2xl flex items-center gap-3"><ShieldCheck className="h-6 w-6 text-gold" /> Order Confirmation</h3>
+                
+                <div className="bg-secondary/20 rounded-xl p-5 space-y-4 text-sm border border-border">
+                  <h4 className="font-display text-lg border-b border-border pb-2">Order Summary</h4>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-muted-foreground">Product</span>
+                    <span className="font-medium text-right">{productName} {depth ? `(${depth})` : ""}</span>
                   </div>
-                  <div className="p-5 rounded-xl border border-border bg-secondary/30 flex flex-col items-center text-center gap-3 hover:border-gold/50 transition">
-                    <ShieldCheck className="h-6 w-6 text-gold" />
-                    <h4 className="font-medium text-sm">Payment Notice</h4>
-                    <p className="text-xs text-muted-foreground text-red-500 font-medium">100% Full Payment Required For Booking</p>
+                  {search.size && (
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-muted-foreground">Size</span>
+                      <span className="font-medium">{search.size}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-muted-foreground">Submission Method</span>
+                    <span className="font-medium capitalize">{submissionMethod === "ship" ? "Ship Real Flowers" : "Upload Images Only"}</span>
                   </div>
-                  <div className="p-5 rounded-xl border border-border bg-secondary/30 flex flex-col items-center text-center gap-3 hover:border-gold/50 transition">
-                    <MapPin className="h-6 w-6 text-gold" />
-                    <h4 className="font-medium text-sm">Shipping Included</h4>
-                    <p className="text-xs text-muted-foreground">Shipping charges included in all prices.</p>
+                  {shippingDate && (
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-muted-foreground">Expected Shipping Date</span>
+                      <span className="font-medium">{format(shippingDate, "MMMM d, yyyy")}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center py-1 border-t border-border pt-3">
+                    <span className="text-gold font-medium">Total Amount</span>
+                    <span className="text-gold font-display text-xl">Rs. {price.toLocaleString("en-IN")}</span>
                   </div>
-                  <div className="p-5 rounded-xl border border-border bg-secondary/30 flex flex-col items-center text-center gap-3 hover:border-gold/50 transition">
-                    <Heart className="h-6 w-6 text-gold" />
-                    <h4 className="font-medium text-sm">Handmade Notice</h4>
-                    <p className="text-xs text-muted-foreground">Every piece is handcrafted specially for you. No two creations are exactly the same.</p>
+                </div>
+
+                <div className="bg-secondary/20 rounded-xl p-5 space-y-3 text-sm border border-border">
+                  <h4 className="font-display text-lg border-b border-border pb-2">Contact & Delivery Details</h4>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium block">Customer</span>
+                      <span className="font-medium">{customer.name}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium block">Contact Info</span>
+                      <span className="font-medium">{customer.mobile} {customer.whatsapp && `(WA: ${customer.whatsapp})`}</span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium block">Delivery Address</span>
+                      <p className="text-xs text-foreground/80 leading-relaxed mt-1">
+                        <strong>{address.house}</strong>, {address.area}<br />
+                        {address.landmark ? `${address.landmark}, ` : ""}{address.district}, {address.state} - {address.pin}
+                      </p>
+                    </div>
                   </div>
+                </div>
+
+                <div className="bg-red-500/5 rounded-xl p-5 border border-red-500/20 space-y-2 text-xs">
+                  <h4 className="font-medium text-red-600 uppercase tracking-widest flex items-center gap-1.5"><AlertCircle className="h-4 w-4" /> Important Booking Terms</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    • <strong>Production Timeline:</strong> 30–35 Working Days (Saturdays & Sundays excluded). Every piece is handcrafted specially for you.
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    • <strong>100% Full Payment Required:</strong> Booking is confirmed only upon receiving full payment via UPI / Bank Transfer. Once you submit, our WhatsApp chat will open automatically to complete payment.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <button
+                    onClick={handleBack}
+                    className="flex-1 inline-flex justify-center items-center gap-2 px-6 py-4 border border-border rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-secondary hover:border-gold transition"
+                  >
+                    <ArrowLeft className="h-3.5 w-3.5" /> Back
+                  </button>
+                  <button
+                    onClick={handlePayment}
+                    disabled={isProcessing}
+                    className="flex-[2] py-4 bg-gold text-primary-foreground rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase font-semibold hover:opacity-90 hover:scale-[1.01] shadow-gold transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                  >
+                    {isProcessing ? (
+                      <>Processing Order...</>
+                    ) : (
+                      <>Confirm & Order via WhatsApp →</>
+                    )}
+                  </button>
                 </div>
               </div>
             </ScrollReveal>
           )}
 
           {/* Nav Buttons */}
-          {step < 4 && (
+          {step < 3 && (
             <div className="flex justify-between items-center pt-6">
               <button
                 onClick={handleBack}

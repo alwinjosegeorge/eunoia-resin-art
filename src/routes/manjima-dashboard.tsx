@@ -78,6 +78,20 @@ type SavedProduct = {
   status: string; metaTitle: string; metaDesc: string; slug: string; createdAt: string;
 };
 
+async function parseFetchError(res: Response, defaultMsg: string): Promise<string> {
+  try {
+    const errData = await res.json();
+    return errData.error || defaultMsg;
+  } catch {
+    try {
+      const errText = await res.text();
+      return `Server Error (${res.status}): ${errText.slice(0, 150)}`;
+    } catch {
+      return `Server Error (${res.status})`;
+    }
+  }
+}
+
 function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pin, setPin] = useState("");
@@ -100,12 +114,18 @@ function DashboardPage() {
       if (ordersRes.ok) {
         const ordersData = await ordersRes.json();
         setOrders(ordersData);
+      } else {
+        const errMsg = await parseFetchError(ordersRes, "Failed to load orders from MongoDB.");
+        console.error(errMsg);
       }
       
       const productsRes = await fetch("/api/products");
       if (productsRes.ok) {
         const productsData = await productsRes.json();
         setSavedProducts(productsData);
+      } else {
+        const errMsg = await parseFetchError(productsRes, "Failed to load products from MongoDB.");
+        console.error(errMsg);
       }
     } catch (err) {
       console.error("Failed to load dashboard data from MongoDB:", err);
@@ -144,11 +164,12 @@ function DashboardPage() {
         const next = orders.map(o => o.id === savedData.id ? savedData : o);
         setOrders(next); setSelectedOrder(savedData);
       } else {
-        alert("Failed to save order changes to MongoDB.");
+        const errMsg = await parseFetchError(res, "Failed to save order changes to MongoDB.");
+        alert(errMsg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to update order in MongoDB:", err);
-      alert("Error saving order. Check console.");
+      alert(`Error saving order: ${err?.message || err}`);
     }
   };
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,7 +195,9 @@ function DashboardPage() {
           const next = savedProducts.map(p => p.id === product.id ? updated : p);
           setSavedProducts(next);
         } else {
-          alert("Failed to update product in MongoDB.");
+          const errMsg = await parseFetchError(res, "Failed to update product in MongoDB.");
+          alert(errMsg);
+          return;
         }
       } else {
         // Create new product
@@ -187,15 +210,16 @@ function DashboardPage() {
           const created = await res.json();
           setSavedProducts([created, ...savedProducts]);
         } else {
-          const errData = await res.json();
-          alert(errData.error || "Failed to create product in MongoDB.");
+          const errMsg = await parseFetchError(res, "Failed to create product in MongoDB.");
+          alert(errMsg);
+          return;
         }
       }
       setEditingProduct(null);
       setProductView("list");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error saving product:", err);
-      alert("Failed to save product to database.");
+      alert(`Failed to save product to database: ${err?.message || err}`);
     }
   };
   const deleteProduct = async (id: string) => {
@@ -208,11 +232,12 @@ function DashboardPage() {
         const next = savedProducts.filter(p => p.id !== id);
         setSavedProducts(next);
       } else {
-        alert("Failed to delete product from MongoDB.");
+        const errMsg = await parseFetchError(res, "Failed to delete product from MongoDB.");
+        alert(errMsg);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error deleting product:", err);
-      alert("Failed to delete product from database.");
+      alert(`Failed to delete product from database: ${err?.message || err}`);
     }
   };
   const startEdit = (p: SavedProduct) => { setEditingProduct(p); setProductView("form"); };
@@ -246,16 +271,17 @@ function DashboardPage() {
         localStorage.removeItem("era_products");
         await fetchDbData();
       } else {
-        const err = await res.json();
-        alert(`Sync failed: ${err.error}`);
+        const errMsg = await parseFetchError(res, "Sync failed.");
+        alert(`Sync failed: ${errMsg}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Sync error:", err);
-      alert("Error occurred during data sync.");
+      alert(`Error occurred during data sync: ${err?.message || err}`);
     } finally {
       setIsSyncing(false);
     }
   };
+
 
   const generateWhatsAppLink = (order: any) => {
     if (!order) return "";
