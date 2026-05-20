@@ -6,19 +6,23 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const isBuild = process.env.NODE_ENV === "production" || process.argv.includes("build");
+
 // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
 // @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
 export default defineConfig({
   cloudflare: false,
   vite: {
+    ssr: {
+      noExternal: isBuild ? ["mongoose", "mongodb"] : [],
+    },
     plugins: [
       {
-        name: "replace-mongodb-require",
-        transform(code, id, options) {
-          // Scope transform to only target database files loaded during server-side build (SSR)
-          if (options?.ssr && (id.includes("mongodb") || id.includes("mongoose"))) {
+        name: "inject-require-banner",
+        renderChunk(code, chunk, options) {
+          if (options.ssr) {
             return {
-              code: code.replace(/\brequire\(/g, "globalThis.require?.("),
+              code: `import { createRequire } from 'module';\nconst require = createRequire(import.meta.url);\n${code}`,
               map: null,
             };
           }
