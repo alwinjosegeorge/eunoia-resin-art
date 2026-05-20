@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/orders")({
           return Response.json(orders);
         } catch (error: any) {
           console.error("API Orders GET error:", error);
-          return Response.json({ error: error.message || "Failed to fetch orders" }, { status: 500 });
+          return Response.json({ error: error.message || "Failed to fetch orders", stack: error.stack }, { status: 500 });
         }
       },
       POST: async ({ request }: { request: Request }) => {
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/api/orders")({
           return Response.json(newOrder, { status: 201 });
         } catch (error: any) {
           console.error("API Orders POST error:", error);
-          return Response.json({ error: error.message || "Failed to create order" }, { status: 500 });
+          return Response.json({ error: error.message || "Failed to create order", stack: error.stack }, { status: 500 });
         }
       }
     }
