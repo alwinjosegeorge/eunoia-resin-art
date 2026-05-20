@@ -1,11 +1,22 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
-import { products, formatINR } from "@/data/products";
+import { useState, useEffect } from "react";
+import { products, formatINR, pricingVariants } from "@/data/products";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
-import { Heart, ShieldCheck, Truck, Upload } from "lucide-react";
+import { Heart, ShieldCheck, Truck, Clock, Package, ArrowLeft } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/product/$id")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
+    try {
+      const res = await fetch(`/api/products/${params.id}`);
+      if (res.ok) {
+        const product = await res.json();
+        if (product) return { product };
+      }
+    } catch (err) {
+      console.error("Failed to load product from API, falling back to static:", err);
+    }
+    
     const product = products.find((p) => p.id === params.id);
     if (!product) throw notFound();
     return { product };
@@ -22,170 +33,254 @@ export const Route = createFileRoute("/product/$id")({
   ),
 });
 
-const depths = ["10mm", "15mm", "20mm", "30mm"] as const;
-const shapes = ["Square", "Round", "Hexagon", "Free-form"] as const;
-const flowers = [
-  { name: "Roses", color: "#f4b6c2" },
-  { name: "Hydrangeas", color: "#b6a8f4" },
-  { name: "Lavender", color: "#9b7fc7" },
-  { name: "Daisies", color: "#fff9d1" },
-  { name: "Marigold", color: "#f4c66b" },
-];
-const frames = [
-  { name: "Teak", color: "#8b5a2b" },
-  { name: "Pine", color: "#d6b48e" },
-  { name: "Black Oak", color: "#2a1a10" },
-  { name: "Brass", color: "#c9a14a" },
-];
-
 function ProductPage() {
   const { product } = Route.useLoaderData();
-  const [depth, setDepth] = useState<typeof depths[number]>("15mm");
-  const [shape, setShape] = useState<typeof shapes[number]>("Square");
-  const [flower, setFlower] = useState(flowers[0]);
-  const [frame, setFrame] = useState(frames[0]);
+  const navigate = useNavigate();
+  
+  const isDbProduct = !!product.pricingMatrix && product.pricingMatrix.length > 0;
 
-  const shapeStyle: Record<string, string> = {
-    Square: "rounded-lg",
-    Round: "rounded-full",
-    Hexagon: "[clip-path:polygon(25%_5%,75%_5%,98%_50%,75%_95%,25%_95%,2%_50%)]",
-    "Free-form": "rounded-[40%_60%_55%_45%/55%_45%_55%_45%]",
+  const [selectedVariantId, setSelectedVariantId] = useState(isDbProduct ? "" : pricingVariants[0].id);
+  const [selectedDepth, setSelectedDepth] = useState(isDbProduct ? "" : "15mm");
+  
+  const [selectedDbSize, setSelectedDbSize] = useState(isDbProduct ? (product.selectedSizes?.[0] || "") : "");
+  const [selectedDbDepth, setSelectedDbDepth] = useState(isDbProduct ? (product.selectedDepths?.[0] || "") : "");
+  
+  const [notes, setNotes] = useState("");
+  const [activeImage, setActiveImage] = useState(0);
+
+  useEffect(() => {
+    if (isDbProduct) {
+      setSelectedDbSize(product.selectedSizes?.[0] || "");
+      setSelectedDbDepth(product.selectedDepths?.[0] || "");
+    } else {
+      setSelectedVariantId(pricingVariants[0].id);
+      setSelectedDepth("15mm");
+    }
+    setActiveImage(0);
+  }, [product, isDbProduct]);
+
+  const gallery = product.gallery && product.gallery.length > 0 
+    ? [product.image, ...product.gallery].filter(Boolean) as string[]
+    : [product.image, product.image, product.image].filter(Boolean) as string[];
+  
+  let currentPrice = 0;
+  if (isDbProduct) {
+    const matchedRow = product.pricingMatrix?.find(
+      (r: any) => r.size === selectedDbSize && r.depth === selectedDbDepth
+    );
+    currentPrice = Number(matchedRow?.price) || Number(product.pricingMatrix?.[0]?.price) || 0;
+  } else {
+    const selectedVariant = pricingVariants.find(v => v.id === selectedVariantId);
+    currentPrice = selectedVariant?.depths 
+      ? selectedVariant.depths.find(d => d.size === selectedDepth)?.price || selectedVariant.depths[0].price || 0 
+      : selectedVariant?.basePrice || 0;
+  }
+
+  const handleVariantChange = (id: string) => {
+    setSelectedVariantId(id);
   };
 
-  const depthScale: Record<string, number> = { "10mm": 0.85, "15mm": 1, "20mm": 1.12, "30mm": 1.28 };
+  const handleBookNow = () => {
+    navigate({
+      to: "/checkout",
+      search: {
+        variantId: isDbProduct ? product.id : selectedVariantId,
+        depth: isDbProduct ? selectedDbDepth : selectedDepth,
+        notes: notes,
+        ...(isDbProduct ? { size: selectedDbSize, isDbProduct: "true" } : {})
+      } as any
+    });
+  };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-12 grid lg:grid-cols-2 gap-16">
-      {/* LIVE PREVIEW */}
-      <ScrollReveal>
-        <div className="sticky top-28">
-          <div className="text-[10px] tracking-[0.4em] uppercase text-gold mb-3">Live Customization Preview</div>
-          <div
-            className="relative aspect-square w-full shadow-soft overflow-hidden grid place-items-center transition-all duration-700"
-            style={{
-              background: `linear-gradient(135deg, ${frame.color}40, ${frame.color}80)`,
-              borderRadius: shape === "Round" ? "50%" : "1rem",
-            }}
-          >
-            <div className="absolute inset-6 rounded-[inherit] border-[10px]" style={{ borderColor: frame.color, background: "linear-gradient(180deg, #fefaf2, #f8efdf)" }} />
-            <div
-              className={`relative ${shapeStyle[shape]} overflow-hidden`}
-              style={{
-                width: `${65 * depthScale[depth]}%`,
-                height: `${65 * depthScale[depth]}%`,
-                background: `radial-gradient(circle at 30% 30%, ${flower.color}90, ${flower.color}40 70%, transparent), linear-gradient(135deg, rgba(255,255,255,0.6), rgba(201,161,74,0.3))`,
-                boxShadow: `inset 0 0 60px ${flower.color}55, 0 10px 40px rgba(0,0,0,0.15)`,
-              }}
-            >
-              {/* simulated petals */}
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="absolute rounded-full" style={{
-                  width: 28, height: 28,
-                  left: `${20 + (i * 13) % 60}%`, top: `${15 + (i * 17) % 60}%`,
-                  background: `radial-gradient(circle, ${flower.color}, ${flower.color}00)`,
-                  filter: "blur(1px)",
-                }} />
+    <div className="mx-auto max-w-7xl px-6 pt-4 pb-12">
+      {/* Breadcrumbs and Back Navigation */}
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-border/40 pb-4">
+        <Link 
+          to="/shop" 
+          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-gold transition-colors duration-300"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Shop
+        </Link>
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60">
+          <Link to="/" className="hover:text-gold transition-colors">Home</Link>
+          <span>/</span>
+          <Link to="/shop" className="hover:text-gold transition-colors">Shop</Link>
+          <span>/</span>
+          <span className="text-gold font-medium truncate max-w-[120px] md:max-w-[200px]">{product.name}</span>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-16">
+        {/* IMAGE GALLERY */}
+        <ScrollReveal>
+          <div className="sticky top-28 space-y-4">
+            <div className="aspect-[4/5] md:aspect-square w-full rounded-2xl overflow-hidden bg-secondary">
+              <img src={gallery[activeImage]} alt={product.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              {gallery.map((img, idx) => (
+                <button 
+                  key={idx} 
+                  onClick={() => setActiveImage(idx)}
+                  className={`h-16 w-16 md:h-20 md:w-20 rounded-lg overflow-hidden border-2 flex-shrink-0 transition ${activeImage === idx ? "border-gold" : "border-transparent hover:border-gold/50"}`}
+                >
+                  <img src={img} alt={`${product.name} ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
               ))}
-              {/* gold flake */}
-              <div className="absolute inset-0 mix-blend-overlay" style={{
-                background: "radial-gradient(circle at 70% 70%, oklch(0.85 0.12 80) 0px, transparent 4px), radial-gradient(circle at 30% 80%, oklch(0.78 0.13 75) 0px, transparent 3px), radial-gradient(circle at 60% 30%, oklch(0.85 0.12 80) 0px, transparent 5px)",
-              }} />
             </div>
           </div>
-          <p className="mt-4 text-center text-xs text-muted-foreground italic">Preview updates live as you customise</p>
-        </div>
-      </ScrollReveal>
+        </ScrollReveal>
 
-      {/* DETAILS */}
-      <ScrollReveal delay={120}>
+        {/* DETAILS */}
+        <ScrollReveal delay={120}>
         <div>
           <div className="text-[10px] tracking-[0.35em] uppercase text-gold">{product.category}</div>
           <h1 className="font-display text-4xl md:text-5xl mt-2">{product.name}</h1>
           <div className="mt-3 flex items-baseline gap-3">
-            <div className="text-2xl text-foreground font-medium">{formatINR(product.price)}</div>
-            <div className="text-sm line-through text-muted-foreground">{formatINR(Math.round(product.price * 1.25))}</div>
+            <div className="text-3xl text-foreground font-medium">{formatINR(currentPrice)}</div>
+            <div className="text-sm line-through text-muted-foreground">{formatINR(Math.round(currentPrice * 1.25))}</div>
             <span className="text-xs text-destructive bg-destructive/10 px-2 py-0.5 rounded">20% off</span>
           </div>
           <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
 
-          {/* Depth */}
-          <div className="mt-8">
-            <div className="flex justify-between text-xs"><span className="tracking-wide font-medium">Resin Depth</span><span className="text-gold">{depth} {depth === "15mm" && "(Standard)"}</span></div>
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {depths.map((d) => (
-                <button key={d} onClick={() => setDepth(d)} className={`py-2 rounded text-xs transition border ${depth === d ? "border-gold text-gold bg-gold/5" : "border-border text-muted-foreground hover:border-gold"}`}>{d}</button>
-              ))}
+          {/* Art Piece Variation */}
+          {/* Frame Size */}
+          {(isDbProduct ? (product.selectedSizes?.length > 0) : true) && (
+            <div className="mt-8">
+              <div className="flex justify-between text-xs">
+                <span className="tracking-wide font-medium">Frame Size</span>
+                <span className="text-gold">
+                  {isDbProduct ? selectedDbSize : (
+                    <>
+                      {selectedVariantId === "5x5-frame" && "5×5 Frame"}
+                      {selectedVariantId === "6x6-teak" && "6×6 Frame"}
+                      {selectedVariantId === "9x12-teak" && "9×12 Frame"}
+                      {selectedVariantId === "12x16" && "12×16 Frame"}
+                    </>
+                  )}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {isDbProduct ? (
+                  product.selectedSizes.map((s: string) => (
+                    <button
+                      key={s}
+                      onClick={() => setSelectedDbSize(s)}
+                      className={`py-2 rounded text-xs transition border ${selectedDbSize === s ? "border-gold text-gold bg-gold/5 shadow-[0_0_10px_rgba(201,161,74,0.2)]" : "border-border text-muted-foreground hover:border-gold"}`}
+                    >
+                      {s}
+                    </button>
+                  ))
+                ) : (
+                  [
+                    { id: "5x5-frame", label: "5×5 Frame" },
+                    { id: "6x6-teak", label: "6×6 Frame" },
+                    { id: "9x12-teak", label: "9×12 Frame" },
+                    { id: "12x16", label: "12×16 Frame" },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setSelectedVariantId(f.id)}
+                      className={`py-2 rounded text-xs transition border ${selectedVariantId === f.id ? "border-gold text-gold bg-gold/5 shadow-[0_0_10px_rgba(201,161,74,0.2)]" : "border-border text-muted-foreground hover:border-gold"}`}
+                    >
+                      {f.label}
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
+          )}
+
+          {/* Resin Depth */}
+          {(isDbProduct ? (product.selectedDepths?.length > 0) : true) && (
+            <div className="mt-6 animate-in fade-in slide-in-from-top-2">
+              <div className="flex justify-between text-xs">
+                <span className="tracking-wide font-medium">Resin Depth</span>
+                <span className="text-gold">{isDbProduct ? selectedDbDepth : selectedDepth}</span>
+              </div>
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {isDbProduct ? (
+                  product.selectedDepths.map((d: string) => (
+                    <button 
+                      key={d} 
+                      onClick={() => setSelectedDbDepth(d)} 
+                      className={`py-2 rounded text-xs transition border ${selectedDbDepth === d ? "border-gold text-gold bg-gold/5 shadow-[0_0_10px_rgba(201,161,74,0.2)]" : "border-border text-muted-foreground hover:border-gold"}`}
+                    >
+                      {d}
+                    </button>
+                  ))
+                ) : (
+                  ["10mm", "15mm", "20mm", "30mm"].map((d) => (
+                    <button 
+                      key={d} 
+                      onClick={() => setSelectedDepth(d)} 
+                      className={`py-2 rounded text-xs transition border ${selectedDepth === d ? "border-gold text-gold bg-gold/5 shadow-[0_0_10px_rgba(201,161,74,0.2)]" : "border-border text-muted-foreground hover:border-gold"}`}
+                    >
+                      {d}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Trust / Process Cards */}
+          <div className="mt-8 grid grid-cols-1 gap-3">
+            {(!isDbProduct || product.showProductionTime !== false) && (
+              <div className="glass-card rounded-xl border border-border p-4 flex items-start gap-3">
+                <div className="mt-0.5 flex-shrink-0 h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center">
+                  <Clock className="h-4 w-4 text-gold" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Production Time</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">30–35 working days<br />(Saturdays &amp; Sundays excluded)</p>
+                </div>
+              </div>
+            )}
+            {(!isDbProduct || product.showPayment !== false) && (
+              <div className="glass-card rounded-xl border border-border p-4 flex items-start gap-3">
+                <div className="mt-0.5 flex-shrink-0 h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center">
+                  <ShieldCheck className="h-4 w-4 text-gold" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Payment Process</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Payment will be collected after your flowers safely reach our studio.</p>
+                </div>
+              </div>
+            )}
+            {(!isDbProduct || product.showShipping !== false) && (
+              <div className="glass-card rounded-xl border border-border p-4 flex items-start gap-3">
+                <div className="mt-0.5 flex-shrink-0 h-8 w-8 rounded-full bg-gold/10 flex items-center justify-center">
+                  <Package className="h-4 w-4 text-gold" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Shipping Included</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Shipping charges included in all prices.</p>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Shape */}
-          <div className="mt-6">
-            <div className="text-xs tracking-wide font-medium">Shape</div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {shapes.map((s) => (
-                <button key={s} onClick={() => setShape(s)} className={`px-4 py-2 rounded-full text-xs transition border ${shape === s ? "bg-foreground text-background border-foreground" : "border-border hover:border-gold"}`}>{s}</button>
-              ))}
-            </div>
-          </div>
-
-          {/* Flower */}
-          <div className="mt-6">
-            <div className="text-xs tracking-wide font-medium">Flower Palette</div>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {flowers.map((f) => (
-                <button key={f.name} onClick={() => setFlower(f)} title={f.name} className={`grid place-items-center transition ${flower.name === f.name ? "ring-2 ring-offset-2 ring-gold" : ""} h-10 w-10 rounded-full`} style={{ background: f.color }}>
-                  <span className="sr-only">{f.name}</span>
-                </button>
-              ))}
-            </div>
-            <div className="mt-2 text-xs text-muted-foreground">Selected: {flower.name}</div>
-          </div>
-
-          {/* Frame */}
-          <div className="mt-6">
-            <div className="text-xs tracking-wide font-medium">Frame Material</div>
-            <div className="mt-3 grid grid-cols-4 gap-2">
-              {frames.map((f) => (
-                <button key={f.name} onClick={() => setFrame(f)} className={`py-3 rounded flex flex-col items-center gap-1.5 transition border ${frame.name === f.name ? "border-gold" : "border-border hover:border-gold/60"}`}>
-                  <span className="h-5 w-5 rounded" style={{ background: f.color }} />
-                  <span className="text-[10px]">{f.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Uploads */}
-          <div className="mt-7 grid grid-cols-2 gap-3">
-            <button className="rounded-xl border-2 border-dashed border-border hover:border-gold py-8 grid place-items-center gap-2 transition">
-              <Upload className="h-5 w-5 text-gold" />
-              <span className="text-xs">Upload Your Memories</span>
+          <div className="mt-8 space-y-3">
+            <button 
+              onClick={handleBookNow} 
+              className="w-full flex items-center justify-center gap-3 bg-gold text-primary-foreground rounded-full py-4 text-sm tracking-[0.25em] uppercase hover:opacity-90 hover:scale-[1.01] transition-all shadow-gold"
+            >
+              <Heart className="h-4 w-4" /> Book Now
             </button>
-            <button className="rounded-xl border-2 border-dashed border-border hover:border-gold py-8 grid place-items-center gap-2 transition">
-              <span className="text-gold">✦</span>
-              <span className="text-xs">Flower Reference</span>
+            <button className="w-full flex items-center justify-center gap-3 border border-border bg-transparent text-foreground rounded-full py-4 text-sm tracking-[0.25em] uppercase hover:bg-secondary transition">
+              Add to Cart
             </button>
           </div>
 
-          {/* Notes */}
-          <div className="mt-5">
-            <label className="text-xs tracking-wide font-medium">Custom Notes for Manjima</label>
-            <textarea
-              className="mt-2 w-full rounded-xl bg-blush/30 border border-border p-4 text-sm focus:outline-none focus:border-gold"
-              rows={3}
-              placeholder="Tell us the story behind these flowers…"
-            />
-          </div>
-
-          <Link to="/checkout" className="mt-8 flex items-center justify-center gap-3 bg-gold text-primary-foreground rounded-full py-4 text-sm tracking-[0.25em] uppercase hover:opacity-90 transition">
-            <Heart className="h-4 w-4" /> Add to Collection
-          </Link>
-
-          <div className="mt-5 flex items-center justify-center gap-6 text-xs text-muted-foreground">
+          <div className="mt-6 flex items-center justify-center gap-6 text-[11px] tracking-wide text-muted-foreground uppercase">
             <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-gold" /> Handmade with Love</span>
-            <span className="flex items-center gap-1.5"><Truck className="h-3.5 w-3.5 text-gold" /> Estimated: 12–15 days</span>
+            <span className="flex items-center gap-1.5"><Truck className="h-3.5 w-3.5 text-gold" /> Ships securely</span>
           </div>
         </div>
-      </ScrollReveal>
+        </ScrollReveal>
+      </div>
     </div>
   );
 }

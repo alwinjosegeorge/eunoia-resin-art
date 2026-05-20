@@ -6,13 +6,13 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useLocation,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { WhatsAppButton } from "@/components/site/WhatsAppButton";
-import { MusicToggle } from "@/components/site/MusicToggle";
 import { CursorGlow } from "@/components/site/CursorGlow";
 import { LoaderScreen } from "@/components/site/LoaderScreen";
 
@@ -117,18 +117,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const location = useLocation();
+  const isCheckout = location.pathname === "/checkout";
+  const isDashboard = location.pathname === "/manjima-dashboard";
 
   return (
     <QueryClientProvider client={queryClient}>
       <LoaderScreen />
       <CursorGlow />
-      <Navbar />
-      <main className="pt-24">
+      {!isDashboard && <Navbar />}
+      <main className={isDashboard ? "" : "pt-20"}>
         <Outlet />
       </main>
-      <Footer />
-      <WhatsAppButton />
-      <MusicToggle />
+      {!isCheckout && !isDashboard && <Footer />}
+      {!isDashboard && <WhatsAppButton />}
     </QueryClientProvider>
   );
 }

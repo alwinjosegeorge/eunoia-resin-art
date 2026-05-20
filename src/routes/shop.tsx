@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { products, formatINR } from "@/data/products";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
 import { Heart, Sparkles } from "lucide-react";
@@ -18,9 +18,47 @@ const cats = ["All Pieces", "Teak Wood Frames", "Hoop Collection", "Hexagon Deep
 
 function ShopPage() {
   const [cat, setCat] = useState("All Pieces");
-  const list = useMemo(() => (cat === "All Pieces" ? products : products.filter((p) => p.category === cat)), [cat]);
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const data = await res.json();
+          // Filter only active products
+          const activeOnly = data.filter((p: any) => p.status === "active" || p.status === "Featured" || p.status === "active" || !p.status);
+          
+          // Map DB pricing matrix/schema properties if needed to conform to the UI's simple Product type
+          const mapped = activeOnly.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            tagline: p.subtitle || p.category,
+            category: p.category,
+            price: Number(p.pricingMatrix?.[0]?.price) || Number(p.previewPrice) || 0,
+            image: p.image || products[0].image, // Fallback image if not uploaded yet
+            hoverImage: p.hoverImage, // Map hoverImage
+            badge: p.badge,
+            description: p.description
+          }));
+          
+          setDbProducts(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to load products from database:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  const displayProducts = dbProducts.length > 0 ? dbProducts : products;
+
+  const list = useMemo(() => (cat === "All Pieces" ? displayProducts : displayProducts.filter((p) => p.category === cat)), [cat, displayProducts]);
   return (
-    <div className="mx-auto max-w-7xl px-6 py-20">
+    <div className="mx-auto max-w-7xl px-6 pt-8 pb-20">
       <ScrollReveal>
         <div className="text-center max-w-2xl mx-auto mb-16">
           <div className="text-[10px] tracking-[0.5em] text-gold uppercase mb-4">Curated Atelier</div>
@@ -68,10 +106,18 @@ function ShopPage() {
               <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
                 <div className="relative overflow-hidden rounded-xl aspect-[4/5] bg-secondary">
                   <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-1000" />
-                  {p.badge && (
-                    <span className="absolute top-3 left-3 bg-foreground text-background text-[9px] tracking-[0.25em] uppercase px-2 py-1 rounded">{p.badge}</span>
+                  {p.hoverImage && (
+                    <img 
+                      src={p.hoverImage} 
+                      alt={`${p.name} Alternate`} 
+                      loading="lazy" 
+                      className="absolute inset-0 h-full w-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out" 
+                    />
                   )}
-                  <button className="absolute top-3 right-3 grid place-items-center h-8 w-8 rounded-full bg-white/80 backdrop-blur hover:text-gold transition">
+                  {p.badge && (
+                    <span className="absolute top-3 left-3 bg-foreground text-background text-[9px] tracking-[0.25em] uppercase px-2 py-1 rounded z-10">{p.badge}</span>
+                  )}
+                  <button className="absolute top-3 right-3 grid place-items-center h-8 w-8 rounded-full bg-white/80 backdrop-blur hover:text-gold transition z-10">
                     <Heart className="h-4 w-4" />
                   </button>
                 </div>

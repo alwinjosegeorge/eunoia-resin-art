@@ -76,3 +76,29 @@ export const products: Product[] = [
 
 export const formatINR = (n: number) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+export type PricingVariant = {
+  id: string;
+  name: string;
+  basePrice?: number;
+  depths?: { size: string; price: number }[];
+};
+
+export const pricingVariants: PricingVariant[] = [
+  { id: "5x5-frame", name: "5×5 Frame", basePrice: 2000 },
+  { id: "6x6-teak", name: "6×6 Teak Frame", basePrice: 2430 },
+  { id: "8-round-agate", name: "8 inch Round agate with stand", basePrice: 3330 },
+  { id: "8-round", name: "8 inch Round", depths: [{ size: "20mm", price: 4050 }] },
+  { id: "8-teak", name: "8 inch Teak", depths: [{ size: "15mm", price: 4150 }, { size: "20mm", price: 4800 }] },
+  { id: "8-round-hoop", name: "8 inch Round Hoop", basePrice: 3150 },
+  { id: "9x12-teak", name: "9×12 Teak", depths: [{ size: "10mm", price: 4350 }, { size: "15mm", price: 5350 }, { size: "20mm", price: 6450 }, { size: "30mm", price: 7499 }] },
+  { id: "10-teak", name: "10 inch Teak", depths: [{ size: "15mm", price: 5050 }] },
+  { id: "10x12-pine", name: "10×12 Pine", depths: [{ size: "10mm", price: 4350 }] },
+  { id: "10x12-teak", name: "10×12 Teak", basePrice: 5050 },
+  { id: "8-clock", name: "8 inch Clock", depths: [{ size: "20mm", price: 4300 }] },
+  { id: "10-clock", name: "10 inch Clock", basePrice: 6330 },
+  { id: "12x12", name: "12×12 Frame", depths: [{ size: "15mm", price: 6500 }] },
+  { id: "12x16", name: "12×16 Frame", depths: [{ size: "10mm", price: 7499 }] },
+  { id: "8-hex-deepcast", name: "8 inch Hexagon Deepcast", depths: [{ size: "20mm", price: 4050 }, { size: "30mm", price: 4850 }, { size: "35mm", price: 5550 }, { size: "50mm", price: 7299 }] },
+  { id: "8-square-deepcast", name: "8 inch Square Deepcast", depths: [{ size: "30mm", price: 4850 }, { size: "35mm", price: 5550 }, { size: "50mm", price: 7299 }] },
+];

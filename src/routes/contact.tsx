@@ -14,7 +14,7 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-20">
+    <section className="mx-auto max-w-6xl px-6 pt-8 pb-20">
       <ScrollReveal>
         <div className="text-center mb-14">
           <div className="text-[10px] tracking-[0.5em] uppercase text-gold mb-4">Get In Touch</div>

@@ -12,14 +12,21 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeddingRouteImport } from './routes/wedding'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShopRouteImport } from './routes/shop'
+import { Route as ManjimaDashboardRouteImport } from './routes/manjima-dashboard'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CustomRouteImport } from './routes/custom'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrackIdRouteImport } from './routes/track.$id'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
+import { Route as ApiSyncRouteImport } from './routes/api/sync'
+import { Route as ApiProductsRouteImport } from './routes/api/products'
+import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiMemoryQuoteRouteImport } from './routes/api/memory-quote'
+import { Route as ApiProductsIdRouteImport } from './routes/api/products.$id'
+import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 
 const WeddingRoute = WeddingRouteImport.update({
   id: '/wedding',
@@ -34,6 +41,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManjimaDashboardRoute = ManjimaDashboardRouteImport.update({
+  id: '/manjima-dashboard',
+  path: '/manjima-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -66,15 +78,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrackIdRoute = TrackIdRouteImport.update({
+  id: '/track/$id',
+  path: '/track/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductIdRoute = ProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSyncRoute = ApiSyncRouteImport.update({
+  id: '/api/sync',
+  path: '/api/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProductsRoute = ApiProductsRouteImport.update({
+  id: '/api/products',
+  path: '/api/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOrdersRoute = ApiOrdersRouteImport.update({
+  id: '/api/orders',
+  path: '/api/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiMemoryQuoteRoute = ApiMemoryQuoteRouteImport.update({
   id: '/api/memory-quote',
   path: '/api/memory-quote',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiProductsIdRoute = ApiProductsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiProductsRoute,
+} as any)
+const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiOrdersRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -84,11 +126,18 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/custom': typeof CustomRoute
   '/faq': typeof FaqRoute
+  '/manjima-dashboard': typeof ManjimaDashboardRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding': typeof WeddingRoute
   '/api/memory-quote': typeof ApiMemoryQuoteRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
+  '/api/products': typeof ApiProductsRouteWithChildren
+  '/api/sync': typeof ApiSyncRoute
   '/product/$id': typeof ProductIdRoute
+  '/track/$id': typeof TrackIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/products/$id': typeof ApiProductsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -97,11 +146,18 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/custom': typeof CustomRoute
   '/faq': typeof FaqRoute
+  '/manjima-dashboard': typeof ManjimaDashboardRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding': typeof WeddingRoute
   '/api/memory-quote': typeof ApiMemoryQuoteRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
+  '/api/products': typeof ApiProductsRouteWithChildren
+  '/api/sync': typeof ApiSyncRoute
   '/product/$id': typeof ProductIdRoute
+  '/track/$id': typeof TrackIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/products/$id': typeof ApiProductsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,11 +167,18 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/custom': typeof CustomRoute
   '/faq': typeof FaqRoute
+  '/manjima-dashboard': typeof ManjimaDashboardRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding': typeof WeddingRoute
   '/api/memory-quote': typeof ApiMemoryQuoteRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
+  '/api/products': typeof ApiProductsRouteWithChildren
+  '/api/sync': typeof ApiSyncRoute
   '/product/$id': typeof ProductIdRoute
+  '/track/$id': typeof TrackIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/products/$id': typeof ApiProductsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -126,11 +189,18 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom'
     | '/faq'
+    | '/manjima-dashboard'
     | '/shop'
     | '/sitemap.xml'
     | '/wedding'
     | '/api/memory-quote'
+    | '/api/orders'
+    | '/api/products'
+    | '/api/sync'
     | '/product/$id'
+    | '/track/$id'
+    | '/api/orders/$id'
+    | '/api/products/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,11 +209,18 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom'
     | '/faq'
+    | '/manjima-dashboard'
     | '/shop'
     | '/sitemap.xml'
     | '/wedding'
     | '/api/memory-quote'
+    | '/api/orders'
+    | '/api/products'
+    | '/api/sync'
     | '/product/$id'
+    | '/track/$id'
+    | '/api/orders/$id'
+    | '/api/products/$id'
   id:
     | '__root__'
     | '/'
@@ -152,11 +229,18 @@ export interface FileRouteTypes {
     | '/contact'
     | '/custom'
     | '/faq'
+    | '/manjima-dashboard'
     | '/shop'
     | '/sitemap.xml'
     | '/wedding'
     | '/api/memory-quote'
+    | '/api/orders'
+    | '/api/products'
+    | '/api/sync'
     | '/product/$id'
+    | '/track/$id'
+    | '/api/orders/$id'
+    | '/api/products/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -166,11 +250,16 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   CustomRoute: typeof CustomRoute
   FaqRoute: typeof FaqRoute
+  ManjimaDashboardRoute: typeof ManjimaDashboardRoute
   ShopRoute: typeof ShopRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WeddingRoute: typeof WeddingRoute
   ApiMemoryQuoteRoute: typeof ApiMemoryQuoteRoute
+  ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
+  ApiProductsRoute: typeof ApiProductsRouteWithChildren
+  ApiSyncRoute: typeof ApiSyncRoute
   ProductIdRoute: typeof ProductIdRoute
+  TrackIdRoute: typeof TrackIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -194,6 +283,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manjima-dashboard': {
+      id: '/manjima-dashboard'
+      path: '/manjima-dashboard'
+      fullPath: '/manjima-dashboard'
+      preLoaderRoute: typeof ManjimaDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -238,11 +334,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/track/$id': {
+      id: '/track/$id'
+      path: '/track/$id'
+      fullPath: '/track/$id'
+      preLoaderRoute: typeof TrackIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/product/$id': {
       id: '/product/$id'
       path: '/product/$id'
       fullPath: '/product/$id'
       preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sync': {
+      id: '/api/sync'
+      path: '/api/sync'
+      fullPath: '/api/sync'
+      preLoaderRoute: typeof ApiSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/products': {
+      id: '/api/products'
+      path: '/api/products'
+      fullPath: '/api/products'
+      preLoaderRoute: typeof ApiProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/orders': {
+      id: '/api/orders'
+      path: '/api/orders'
+      fullPath: '/api/orders'
+      preLoaderRoute: typeof ApiOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/memory-quote': {
@@ -252,8 +376,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMemoryQuoteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/products/$id': {
+      id: '/api/products/$id'
+      path: '/$id'
+      fullPath: '/api/products/$id'
+      preLoaderRoute: typeof ApiProductsIdRouteImport
+      parentRoute: typeof ApiProductsRoute
+    }
+    '/api/orders/$id': {
+      id: '/api/orders/$id'
+      path: '/$id'
+      fullPath: '/api/orders/$id'
+      preLoaderRoute: typeof ApiOrdersIdRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
   }
 }
+
+interface ApiOrdersRouteChildren {
+  ApiOrdersIdRoute: typeof ApiOrdersIdRoute
+}
+
+const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
+  ApiOrdersIdRoute: ApiOrdersIdRoute,
+}
+
+const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
+  ApiOrdersRouteChildren,
+)
+
+interface ApiProductsRouteChildren {
+  ApiProductsIdRoute: typeof ApiProductsIdRoute
+}
+
+const ApiProductsRouteChildren: ApiProductsRouteChildren = {
+  ApiProductsIdRoute: ApiProductsIdRoute,
+}
+
+const ApiProductsRouteWithChildren = ApiProductsRoute._addFileChildren(
+  ApiProductsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -262,11 +424,16 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   CustomRoute: CustomRoute,
   FaqRoute: FaqRoute,
+  ManjimaDashboardRoute: ManjimaDashboardRoute,
   ShopRoute: ShopRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   WeddingRoute: WeddingRoute,
   ApiMemoryQuoteRoute: ApiMemoryQuoteRoute,
+  ApiOrdersRoute: ApiOrdersRouteWithChildren,
+  ApiProductsRoute: ApiProductsRouteWithChildren,
+  ApiSyncRoute: ApiSyncRoute,
   ProductIdRoute: ProductIdRoute,
+  TrackIdRoute: TrackIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

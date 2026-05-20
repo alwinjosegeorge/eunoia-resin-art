@@ -27,7 +27,7 @@ const faqs = [
 function FAQPage() {
   const [open, setOpen] = useState<number | null>(0);
   return (
-    <section className="mx-auto max-w-3xl px-6 py-20">
+    <section className="mx-auto max-w-3xl px-6 pt-8 pb-20">
       <ScrollReveal>
         <div className="text-center mb-14">
           <div className="text-[10px] tracking-[0.5em] uppercase text-gold mb-4">Frequently Asked</div>

@@ -4,7 +4,7 @@ import logo from "@/assets/logo.png";
 
 export function Footer() {
   return (
-    <footer className="mt-32 border-t border-border/60 bg-ivory">
+    <footer className="mt-16 border-t border-border/60 bg-ivory">
       <div className="mx-auto max-w-7xl px-6 py-20 grid gap-12 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-2">
@@ -18,8 +18,8 @@ export function Footer() {
             Every piece is an alchemy of time, nature, and emotion — handcrafted with soul by Manjima in her boutique Calicut studio.
           </p>
           <div className="mt-5 flex items-center gap-4 text-muted-foreground">
-            <a href="#" aria-label="Instagram" className="hover:text-gold transition"><Instagram className="h-4 w-4" /></a>
-            <a href="mailto:hello@eunoiaresin.art" className="hover:text-gold transition"><Mail className="h-4 w-4" /></a>
+            <a href="https://www.instagram.com/eunoiaa____aa_resin_art_/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-gold transition"><Instagram className="h-4 w-4" /></a>
+            <a href="mailto:eunoia.resinstudio@gmail.com" className="hover:text-gold transition"><Mail className="h-4 w-4" /></a>
           </div>
         </div>
 
