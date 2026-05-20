@@ -1,4 +1,5 @@
-import "./require-polyfill";
+import { initRequirePolyfill } from "./require-polyfill";
+initRequirePolyfill();
 import mongoose from "mongoose";
 
 

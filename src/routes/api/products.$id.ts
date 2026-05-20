@@ -1,4 +1,5 @@
-import "@/lib/require-polyfill";
+import { initRequirePolyfill } from "@/lib/require-polyfill";
+initRequirePolyfill();
 import { createFileRoute } from "@tanstack/react-router";
 import { connectToDatabase } from "@/lib/db";
 import { Product } from "@/models/Product";

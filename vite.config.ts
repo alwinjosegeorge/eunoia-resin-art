@@ -37,8 +37,11 @@ export default defineConfig({
         },
         renderChunk(code, chunk) {
           if (isSsr) {
+            const cleanCode = code
+              .replace(/(?<!\.)\brequire\s*\(/g, "globalThis.require(")
+              .replace(/\btypeof\s+require\b/g, "typeof globalThis.require");
             return {
-              code: `import { createRequire } from 'module';\nconst require = createRequire(import.meta.url);\n${code}`,
+              code: `import { createRequire as _createRequire } from 'module';\nconst require = _createRequire(import.meta.url);\n${cleanCode}`,
               map: null,
             };
           }

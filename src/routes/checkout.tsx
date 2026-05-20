@@ -60,6 +60,8 @@ function CheckoutPage() {
   const [address, setAddress] = useState({ house: "", area: "", landmark: "", district: "", state: "", pin: "" });
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedOrderId, setSubmittedOrderId] = useState("");
 
   const router = useRouter();
 
@@ -132,7 +134,7 @@ function CheckoutPage() {
       existingOrders.push(newOrder);
       localStorage.setItem("era_orders", JSON.stringify(existingOrders));
 
-      const trackingLink = `https://eunoiaresinart.vercel.app/track/${orderId}`;
+      const trackingLink = `https://eunoia-resin-art.vercel.app/track/${orderId}`;
 
       const whatsappMessage = `🌸 *New Eunoia Resin Art Order*
 
@@ -151,11 +153,93 @@ ${customNotes || personalization || "None"}
 ${trackingLink}`;
 
       const encodedMessage = encodeURIComponent(whatsappMessage);
-      window.location.href = `https://wa.me/917591947287?text=${encodedMessage}`;
+      try {
+        window.open(`https://wa.me/917591947287?text=${encodedMessage}`, '_blank');
+      } catch (e) {
+        console.error("Failed to open WhatsApp window:", e);
+      }
       
+      setSubmittedOrderId(orderId);
+      setIsSubmitted(true);
       setIsProcessing(false);
     }, 1500);
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-16 text-center">
+        <ScrollReveal>
+          <div className="glass-card rounded-3xl p-8 md:p-12 space-y-8 border border-gold/30 bg-gradient-to-b from-gold/5 via-transparent to-transparent shadow-lg shadow-gold/5 animate-in fade-in slide-in-from-bottom-4">
+            {/* Glowing Icon */}
+            <div className="relative mx-auto h-20 w-20 bg-gold/10 rounded-full flex items-center justify-center border border-gold/40 shadow-soft">
+              <div className="absolute inset-0 bg-gold/10 rounded-full animate-ping opacity-75 animate-duration-1000" />
+              <ShieldCheck className="h-10 w-10 text-gold" />
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-[10px] tracking-[0.6em] uppercase text-gold font-semibold">Commission Initialized</div>
+              <h1 className="font-display text-3xl md:text-4xl">Order Successfully Placed!</h1>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+                Thank you, <span className="text-foreground font-medium">{customer.name}</span>. We have saved your custom resin art order and generated a unique tracking ID.
+              </p>
+            </div>
+
+            {/* Order Card */}
+            <div className="bg-secondary/40 rounded-2xl p-6 border border-border space-y-4 max-w-md mx-auto">
+              <div className="flex justify-between items-center border-b border-border pb-3">
+                <span className="text-xs text-muted-foreground tracking-wider uppercase">Order ID</span>
+                <span className="font-mono text-gold font-semibold text-sm tracking-wide">{submittedOrderId}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-muted-foreground">Product</span>
+                <span className="text-xs font-medium text-right">{productName} {depth ? `(${depth})` : ""}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-muted-foreground">Submission Method</span>
+                <span className="text-xs font-medium capitalize">{submissionMethod === "ship" ? "Ship Real Flowers" : "Upload Images Only"}</span>
+              </div>
+              <div className="flex justify-between items-center border-t border-border pt-3">
+                <span className="text-xs text-muted-foreground">Total Amount</span>
+                <span className="text-sm font-display text-gold">Rs. {price.toLocaleString("en-IN")}</span>
+              </div>
+            </div>
+
+            {/* Action Callout */}
+            <div className="p-4 rounded-xl bg-gold/5 border border-gold/20 text-xs text-muted-foreground leading-relaxed max-w-md mx-auto space-y-2">
+              <p className="font-medium text-foreground">💬 WhatsApp Payment Setup</p>
+              <p>
+                We have opened a WhatsApp chat with our artist <span className="text-foreground font-semibold">Manjima</span> in a new tab. Please send the message to complete payment setup and confirm your design notes.
+              </p>
+              <a 
+                href={`https://wa.me/917591947287?text=${encodeURIComponent(`🌸 *Eunoia Resin Art Order Update*\n\nMy Order ID is *${submittedOrderId}*. I am ready to complete my payment!`)}`}
+                target="_blank" 
+                rel="noreferrer"
+                className="inline-block mt-2 text-gold hover:underline font-semibold"
+              >
+                Didn't open? Click here to chat →
+              </a>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4 max-w-md mx-auto">
+              <Link
+                to="/"
+                className="flex-1 inline-flex justify-center items-center px-6 py-3.5 border border-border rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-secondary transition font-medium"
+              >
+                Back to Home
+              </Link>
+              <Link
+                to={`/track/${submittedOrderId}`}
+                className="flex-1 inline-flex justify-center items-center px-6 py-3.5 bg-gold text-primary-foreground rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase font-semibold hover:opacity-90 shadow-gold transition-all"
+              >
+                Track Live Progress →
+              </Link>
+            </div>
+          </div>
+        </ScrollReveal>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-6 pt-4 pb-12">
@@ -408,15 +492,6 @@ ${trackingLink}`;
                   </div>
                 </div>
 
-                <div className="bg-red-500/5 rounded-xl p-5 border border-red-500/20 space-y-2 text-xs">
-                  <h4 className="font-medium text-red-600 uppercase tracking-widest flex items-center gap-1.5"><AlertCircle className="h-4 w-4" /> Important Booking Terms</h4>
-                  <p className="text-muted-foreground leading-relaxed">
-                    • <strong>Production Timeline:</strong> 30–35 Working Days (Saturdays & Sundays excluded). Every piece is handcrafted specially for you.
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    • <strong>100% Full Payment Required:</strong> Booking is confirmed only upon receiving full payment via UPI / Bank Transfer. Once you submit, our WhatsApp chat will open automatically to complete payment.
-                  </p>
-                </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <button

@@ -85,4 +85,6 @@ try {
   console.error("Failed to polyfill require:", e);
 }
 
-
+export function initRequirePolyfill() {
+  return typeof (globalThis as any).require === "function";
+}

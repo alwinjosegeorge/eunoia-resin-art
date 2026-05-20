@@ -1,6 +1,7 @@
-import "./lib/require-polyfill";
+import { initRequirePolyfill } from "./lib/require-polyfill";
 import "./lib/error-capture";
 
+initRequirePolyfill();
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
