@@ -1,4 +1,6 @@
+import "./require-polyfill";
 import mongoose from "mongoose";
+
 
 // URL encode the '@' in the password to '%40' for valid connection URI parsing
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://eunoia_db_user:eunoia%402026@cluster0.z4udyji.mongodb.net/eunoia_resin_art?retryWrites=true&w=majority";

@@ -1,4 +1,6 @@
+import "../lib/require-polyfill";
 import mongoose, { Schema, Document } from "mongoose";
+
 
 export interface IOrder extends Document {
   id: string; // custom ID like "ERA-12345"

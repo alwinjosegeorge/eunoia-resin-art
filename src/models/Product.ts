@@ -1,4 +1,6 @@
+import "../lib/require-polyfill";
 import mongoose, { Schema, Document } from "mongoose";
+
 
 export interface IPricingRow {
   size: string;
