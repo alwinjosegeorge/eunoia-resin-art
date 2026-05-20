@@ -44,7 +44,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+      <div className="max-w-xl text-center w-full">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
@@ -68,6 +68,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             Go home
           </a>
         </div>
+        {error && (
+          <div className="mt-8 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-lg text-left w-full overflow-auto max-w-2xl mx-auto shadow-sm">
+            <h3 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2">
+              Client-Side Diagnostic Error
+            </h3>
+            <p className="text-sm font-mono font-bold text-foreground break-all">{error.message || String(error)}</p>
+            {error.stack && (
+              <pre className="mt-2 text-xs font-mono text-muted-foreground overflow-x-auto whitespace-pre-wrap break-all leading-relaxed max-h-60 p-3 bg-black/5 dark:bg-white/5 rounded border border-black/10">
+                {error.stack}
+              </pre>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
