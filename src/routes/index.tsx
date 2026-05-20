@@ -31,7 +31,10 @@ function HomePage() {
           const resData = await res.json();
           const data = resData.success ? resData.data : resData;
           // Filter only active products
-          const activeOnly = data.filter((p: any) => p.status === "active" || p.status === "Featured" || !p.status);
+          const activeOnly = data.filter((p: any) => {
+            const s = p.status?.toLowerCase();
+            return s === "active" || s === "featured" || !p.status;
+          });
           
           // Map DB products to UI Product shape
           const mapped = activeOnly.map((p: any) => ({
