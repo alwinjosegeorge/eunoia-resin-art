@@ -2,21 +2,17 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = "mongodb+srv://eunoia_db_user:eunoia%402026@cluster0.z4udyji.mongodb.net/eunoia_resin_art?retryWrites=true&w=majority";
 
-async function testConnection() {
-  console.log("Attempting to connect to MongoDB Atlas...");
+async function test() {
+  console.log("Connecting to MongoDB:", MONGODB_URI);
   try {
     await mongoose.connect(MONGODB_URI);
-    console.log("SUCCESS: Connected to MongoDB Atlas successfully!");
-    
-    // Check if the Product collection is accessible
-    const collections = await mongoose.connection.db.listCollections().toArray();
-    console.log("Collections in DB:", collections.map(c => c.name));
-    
+    console.log("Connected successfully!");
+    const dbs = await mongoose.connection.db.admin().listDatabases();
+    console.log("Databases:", dbs);
     await mongoose.disconnect();
-    console.log("Disconnected successfully.");
-  } catch (error) {
-    console.error("FAILURE: Could not connect to MongoDB Atlas:", error);
+  } catch (err) {
+    console.error("Connection failed:", err);
   }
 }
 
-testConnection();
+test();
