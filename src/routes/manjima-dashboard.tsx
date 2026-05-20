@@ -467,7 +467,7 @@ function DashboardPage() {
 
                 <div className="hidden lg:block">
                   {selectedOrder ? (
-                    <OrderEditor order={selectedOrder} onSave={saveOrderChanges} onImageUpload={handleImageUpload} whatsAppLink={generateWhatsAppLink(selectedOrder)} />
+                    <OrderEditor order={selectedOrder} onSave={saveOrderChanges} whatsAppLink={generateWhatsAppLink(selectedOrder)} />
                   ) : (
                     <div className="glass-card rounded-3xl border border-border border-dashed flex flex-col items-center justify-center p-12 text-center text-muted-foreground min-h-[400px]">
                       <Package className="h-12 w-12 mb-4 opacity-20" />
@@ -590,7 +590,7 @@ function DashboardPage() {
               </div>
             </div>
             <div className="overflow-y-auto flex-1 p-4 pb-8">
-              <OrderEditor order={selectedOrder} onSave={saveOrderChanges} onImageUpload={handleImageUpload} whatsAppLink={generateWhatsAppLink(selectedOrder)} />
+              <OrderEditor order={selectedOrder} onSave={saveOrderChanges} whatsAppLink={generateWhatsAppLink(selectedOrder)} />
             </div>
           </div>
         </div>
@@ -598,11 +598,61 @@ function DashboardPage() {
     </div>
   );
 }
-function OrderEditor({ order, onSave, onImageUpload, whatsAppLink }: {
-  order: any; onSave: (o: any) => void;
-  onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+function OrderEditor({ order, onSave, whatsAppLink }: {
+  order: any; onSave: (o: any) => Promise<void> | void;
   whatsAppLink: string;
 }) {
+  const [status, setStatus] = React.useState(order.status);
+  const [expectedCompletionDate, setExpectedCompletionDate] = React.useState(order.expectedCompletionDate || "");
+  const [courierDetails, setCourierDetails] = React.useState(order.courierDetails || "");
+  const [adminNotes, setAdminNotes] = React.useState(order.adminNotes || "");
+  const [previewImage, setPreviewImage] = React.useState(order.previewImage || "");
+  const [isSavingLocal, setIsSavingLocal] = React.useState(false);
+
+  React.useEffect(() => {
+    setStatus(order.status);
+    setExpectedCompletionDate(order.expectedCompletionDate || "");
+    setCourierDetails(order.courierDetails || "");
+    setAdminNotes(order.adminNotes || "");
+    setPreviewImage(order.previewImage || "");
+  }, [order]);
+
+  const hasChanges = 
+    status !== order.status ||
+    expectedCompletionDate !== (order.expectedCompletionDate || "") ||
+    courierDetails !== (order.courierDetails || "") ||
+    adminNotes !== (order.adminNotes || "") ||
+    previewImage !== (order.previewImage || "");
+
+  const handleLocalImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { alert("Image too large (max 2 MB)"); return; }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveClick = async () => {
+    setIsSavingLocal(true);
+    try {
+      await onSave({
+        ...order,
+        status,
+        expectedCompletionDate,
+        courierDetails,
+        adminNotes,
+        previewImage
+      });
+    } catch (err: any) {
+      console.error("Save error:", err);
+    } finally {
+      setIsSavingLocal(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="bg-secondary/40 rounded-xl p-4 space-y-2.5 text-sm">
@@ -637,7 +687,7 @@ function OrderEditor({ order, onSave, onImageUpload, whatsAppLink }: {
       <div className="space-y-4">
         <div>
           <label className={lbl + " mb-2 block"}>Production Stage</label>
-          <select value={order.status} onChange={e => onSave({ ...order, status: e.target.value })}
+          <select value={status} onChange={e => setStatus(e.target.value)}
             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold">
             {ALL_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
@@ -646,50 +696,50 @@ function OrderEditor({ order, onSave, onImageUpload, whatsAppLink }: {
           <label className={lbl + " mb-2 block"}>Expected Completion Date</label>
           <Popover>
             <PopoverTrigger asChild>
-              <button className={cn("w-full flex items-center justify-start text-left font-normal bg-background border border-border rounded-xl px-4 py-3 text-sm hover:border-gold transition-colors", !order.expectedCompletionDate && "text-muted-foreground")}>
+              <button className={cn("w-full flex items-center justify-start text-left font-normal bg-background border border-border rounded-xl px-4 py-3 text-sm hover:border-gold transition-colors", !expectedCompletionDate && "text-muted-foreground")}>
                 <CalendarIcon className="mr-3 h-4 w-4 text-gold flex-shrink-0" />
-                {order.expectedCompletionDate || <span>Select a date</span>}
+                {expectedCompletionDate || <span>Select a date</span>}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 border-border shadow-soft" align="start">
               <Calendar mode="single"
-                selected={order.expectedCompletionDate ? new Date(order.expectedCompletionDate) : undefined}
-                onSelect={date => { if (date) onSave({ ...order, expectedCompletionDate: date.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) }); }}
+                selected={expectedCompletionDate ? new Date(expectedCompletionDate) : undefined}
+                onSelect={date => { if (date) setExpectedCompletionDate(date.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })); }}
                 initialFocus className="rounded-xl bg-background" />
             </PopoverContent>
           </Popover>
         </div>
         <div>
           <label className={lbl + " mb-2 block"}>Courier & Tracking</label>
-          <input type="text" value={order.courierDetails || ""} onChange={e => onSave({ ...order, courierDetails: e.target.value })}
+          <input type="text" value={courierDetails} onChange={e => setCourierDetails(e.target.value)}
             placeholder="e.g. DTDC - Tracking ID 987654"
             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold" />
         </div>
         <div>
           <label className={lbl + " mb-2 block"}>Internal Admin Notes</label>
-          <textarea value={order.adminNotes || ""} onChange={e => onSave({ ...order, adminNotes: e.target.value })}
+          <textarea value={adminNotes} onChange={e => setAdminNotes(e.target.value)}
             rows={3} placeholder="Private studio notes..."
             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold resize-none" />
         </div>
         <div>
           <label className={lbl + " mb-2 block"}>Production Update Photo</label>
-          {order.previewImage ? (
+          {previewImage ? (
             <div className="relative rounded-xl overflow-hidden border border-border group">
-              <img src={order.previewImage} alt="Preview" className="w-full h-32 object-cover" />
+              <img src={previewImage} alt="Preview" className="w-full h-32 object-cover" />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button onClick={() => onSave({ ...order, previewImage: null })} className="p-2 bg-red-500 text-white rounded-full hover:scale-110 transition"><X className="h-4 w-4" /></button>
+                <button onClick={() => setPreviewImage("")} className="p-2 bg-red-500 text-white rounded-full hover:scale-110 transition"><X className="h-4 w-4" /></button>
               </div>
             </div>
           ) : (
             <div className="space-y-2">
               <div className="relative w-full h-20 border-2 border-dashed border-border rounded-xl flex items-center justify-center hover:border-gold transition cursor-pointer bg-secondary/30">
-                <input type="file" accept="image/*" onChange={onImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                <input type="file" accept="image/*" onChange={handleLocalImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Upload Preview Photo</span>
               </div>
               <input 
                 type="text" 
-                value={order.previewImage || ""} 
-                onChange={e => onSave({ ...order, previewImage: e.target.value })} 
+                value={previewImage} 
+                onChange={e => setPreviewImage(e.target.value)} 
                 placeholder="Or paste Direct Image URL..." 
                 className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-gold transition-colors" 
               />
@@ -697,6 +747,14 @@ function OrderEditor({ order, onSave, onImageUpload, whatsAppLink }: {
           )}
         </div>
       </div>
+
+      {hasChanges && (
+        <button onClick={handleSaveClick} disabled={isSavingLocal}
+          className="w-full flex items-center justify-center gap-2 bg-gold text-primary-foreground rounded-xl py-3.5 text-xs tracking-widest uppercase font-medium hover:opacity-90 transition active:scale-95 shadow-md shadow-gold/20 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {isSavingLocal ? "Saving Changes..." : "Save Order Changes"}
+        </button>
+      )}
+
       <a href={whatsAppLink} target="_blank"
         className="w-full block text-center bg-[#25D366] text-white rounded-xl py-3.5 text-xs tracking-widest uppercase font-medium hover:opacity-90 transition shadow-lg shadow-[#25D366]/20">
         Message on WhatsApp

@@ -60,7 +60,7 @@ function HomePage() {
     loadProducts();
   }, []);
 
-  const displayProducts = dbProducts.length > 0 ? dbProducts : staticProducts;
+  const displayProducts = dbProducts;
 
   return (
     <>
@@ -143,24 +143,34 @@ function HomePage() {
           </div>
         </ScrollReveal>
         <div className="grid md:grid-cols-3 gap-6">
-          {displayProducts.slice(0, 3).map((p, i) => (
-            <ScrollReveal key={p.id} delay={i * 120}>
-              <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
-                <div className="relative overflow-hidden rounded-2xl aspect-[4/5] bg-secondary">
-                  <img
-                    src={p.image}
-                    alt={p.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-white">
-                    <div className="font-display text-2xl">{p.name}</div>
-                    <div className="text-xs text-white/80 mt-1">{p.tagline}</div>
+          {loading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="animate-pulse rounded-2xl aspect-[4/5] bg-secondary/50" />
+            ))
+          ) : displayProducts.length === 0 ? (
+            <div className="col-span-full text-center py-10 bg-secondary/10 rounded-2xl border border-border/40 text-muted-foreground text-sm">
+              No signature collections added yet.
+            </div>
+          ) : (
+            displayProducts.slice(0, 3).map((p, i) => (
+              <ScrollReveal key={p.id} delay={i * 120}>
+                <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
+                  <div className="relative overflow-hidden rounded-2xl aspect-[4/5] bg-secondary">
+                    <img
+                      src={p.image}
+                      alt={p.name}
+                      loading="lazy"
+                      className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-1000"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/70 via-black/30 to-transparent text-white">
+                      <div className="font-display text-2xl">{p.name}</div>
+                      <div className="text-xs text-white/80 mt-1">{p.tagline}</div>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            </ScrollReveal>
-          ))}
+                </Link>
+              </ScrollReveal>
+            ))
+          )}
         </div>
       </section>
 
@@ -182,23 +192,40 @@ function HomePage() {
           </div>
         </ScrollReveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {displayProducts.map((p, i) => (
-            <ScrollReveal key={p.id} delay={i * 100}>
-              <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
-                <div className="relative overflow-hidden rounded-xl aspect-square bg-secondary">
-                  <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  {p.badge && (
-                    <span className="absolute top-3 left-3 bg-foreground text-background text-[9px] tracking-[0.25em] uppercase px-2 py-1 rounded">{p.badge}</span>
-                  )}
+          {loading ? (
+            Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className="animate-pulse space-y-4">
+                <div className="rounded-xl aspect-square bg-secondary/50" />
+                <div className="space-y-2 flex flex-col items-center">
+                  <div className="h-4 w-28 bg-secondary/70 rounded" />
+                  <div className="h-3 w-16 bg-secondary/70 rounded" />
+                  <div className="h-2 w-12 bg-secondary/70 rounded" />
                 </div>
-                <div className="mt-4 text-center">
-                  <div className="font-display text-lg">{p.name}</div>
-                  <div className="text-gold text-sm mt-1">{formatINR(p.price)}</div>
-                  <div className="mt-3 text-[10px] tracking-[0.3em] uppercase text-muted-foreground border-t border-border pt-3 group-hover:text-gold">Add to cart</div>
-                </div>
-              </Link>
-            </ScrollReveal>
-          ))}
+              </div>
+            ))
+          ) : displayProducts.length === 0 ? (
+            <div className="col-span-full text-center py-10 bg-secondary/10 rounded-2xl border border-border/40 text-muted-foreground text-sm">
+              No products available in the gallery.
+            </div>
+          ) : (
+            displayProducts.map((p, i) => (
+              <ScrollReveal key={p.id} delay={i * 100}>
+                <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
+                  <div className="relative overflow-hidden rounded-xl aspect-square bg-secondary">
+                    <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    {p.badge && (
+                      <span className="absolute top-3 left-3 bg-foreground text-background text-[9px] tracking-[0.25em] uppercase px-2 py-1 rounded">{p.badge}</span>
+                    )}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <div className="font-display text-lg">{p.name}</div>
+                    <div className="text-gold text-sm mt-1">{formatINR(p.price)}</div>
+                    <div className="mt-3 text-[10px] tracking-[0.3em] uppercase text-muted-foreground border-t border-border pt-3 group-hover:text-gold">Add to cart</div>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))
+          )}
         </div>
       </section>
 

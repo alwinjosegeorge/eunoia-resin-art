@@ -33,12 +33,10 @@ export const Route = createFileRoute("/product/$id")({
         return { product: res.data };
       }
     } catch (err) {
-      console.error("Failed to load product from server function, falling back to static:", err);
+      console.error("Failed to load product from server function:", err);
     }
     
-    const product = products.find((p) => p.id === params.id);
-    if (!product) throw notFound();
-    return { product };
+    throw notFound();
   },
   head: ({ loaderData }) => ({
     meta: [

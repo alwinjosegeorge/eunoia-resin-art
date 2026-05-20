@@ -58,7 +58,7 @@ function ShopPage() {
     loadProducts();
   }, []);
 
-  const displayProducts = dbProducts.length > 0 ? dbProducts : products;
+  const displayProducts = dbProducts;
 
   const list = useMemo(() => (cat === "All Pieces" ? displayProducts : displayProducts.filter((p) => p.category === cat)), [cat, displayProducts]);
   return (
@@ -105,34 +105,52 @@ function ShopPage() {
         </aside>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {list.map((p, i) => (
-            <ScrollReveal key={p.id} delay={i * 80}>
-              <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
-                <div className="relative overflow-hidden rounded-xl aspect-[4/5] bg-secondary">
-                  <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-1000" />
-                  {p.hoverImage && (
-                    <img 
-                      src={p.hoverImage} 
-                      alt={`${p.name} Alternate`} 
-                      loading="lazy" 
-                      className="absolute inset-0 h-full w-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out" 
-                    />
-                  )}
-                  {p.badge && (
-                    <span className="absolute top-3 left-3 bg-foreground text-background text-[9px] tracking-[0.25em] uppercase px-2 py-1 rounded z-10">{p.badge}</span>
-                  )}
-                  <button className="absolute top-3 right-3 grid place-items-center h-8 w-8 rounded-full bg-white/80 backdrop-blur hover:text-gold transition z-10">
-                    <Heart className="h-4 w-4" />
-                  </button>
+          {loading ? (
+            Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="animate-pulse space-y-4">
+                <div className="rounded-xl aspect-[4/5] bg-secondary/50" />
+                <div className="space-y-2 flex flex-col items-center">
+                  <div className="h-2.5 w-12 bg-secondary/70 rounded" />
+                  <div className="h-4 w-28 bg-secondary/70 rounded" />
+                  <div className="h-3 w-16 bg-secondary/70 rounded" />
                 </div>
-                <div className="mt-4 text-center">
-                  <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">{p.category}</div>
-                  <div className="font-display text-lg mt-1">{p.name}</div>
-                  <div className="text-gold text-sm mt-1">{formatINR(p.price)}</div>
-                </div>
-              </Link>
-            </ScrollReveal>
-          ))}
+              </div>
+            ))
+          ) : list.length === 0 ? (
+            <div className="col-span-full text-center py-20 bg-secondary/10 rounded-2xl border border-border/40">
+              <Package className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+              <p className="text-muted-foreground text-sm">No pieces found in this collection.</p>
+            </div>
+          ) : (
+            list.map((p, i) => (
+              <ScrollReveal key={p.id} delay={i * 80}>
+                <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
+                  <div className="relative overflow-hidden rounded-xl aspect-[4/5] bg-secondary">
+                    <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-1000" />
+                    {p.hoverImage && (
+                      <img 
+                        src={p.hoverImage} 
+                        alt={`${p.name} Alternate`} 
+                        loading="lazy" 
+                        className="absolute inset-0 h-full w-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out" 
+                      />
+                    )}
+                    {p.badge && (
+                      <span className="absolute top-3 left-3 bg-foreground text-background text-[9px] tracking-[0.25em] uppercase px-2 py-1 rounded z-10">{p.badge}</span>
+                    )}
+                    <button className="absolute top-3 right-3 grid place-items-center h-8 w-8 rounded-full bg-white/80 backdrop-blur hover:text-gold transition z-10">
+                      <Heart className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-4 text-center">
+                    <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">{p.category}</div>
+                    <div className="font-display text-lg mt-1">{p.name}</div>
+                    <div className="text-gold text-sm mt-1">{formatINR(p.price)}</div>
+                  </div>
+                </Link>
+              </ScrollReveal>
+            ))
+          )}
         </div>
       </div>
     </div>
