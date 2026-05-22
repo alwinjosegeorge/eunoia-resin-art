@@ -63,8 +63,11 @@ export default async function handler(reqOrRequest, res) {
     };
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      init.body = Readable.toWeb(req);
-      init.duplex = 'half';
+      const chunks = [];
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+      init.body = Buffer.concat(chunks);
     }
 
     const webRequest = new Request(url, init);
