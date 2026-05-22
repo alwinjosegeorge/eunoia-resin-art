@@ -65,7 +65,7 @@ export function Footer() {
         © Eunoia Resin Art. Handcrafted with soul by Manjima.
         <div style={{ marginTop: "8px" }}>
           <a
-            href="https://codexora-studio.vercel.app"
+            href="https://codexorastudio.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             style={{
