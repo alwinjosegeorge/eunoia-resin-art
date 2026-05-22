@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
 import { pricingVariants, formatINR } from "@/data/products";
-import { Check, ChevronRight, Upload, ShieldCheck, Heart, MapPin, Phone, User, Clock, AlertCircle, Info, Image as ImageIcon, Flower2, Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
+import { Check, ChevronRight, Upload, ShieldCheck, Heart, MapPin, Phone, User, Clock, AlertCircle, Info, Image as ImageIcon, Flower2, Calendar as CalendarIcon, ArrowLeft, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -52,7 +52,8 @@ function CheckoutPage() {
 
   // Form State
   const [submissionMethod, setSubmissionMethod] = useState<"ship" | "upload" | "">("");
-  const [shippingDate, setShippingDate] = useState<Date>();
+  const [memoryItemsChecklist, setMemoryItemsChecklist] = useState<string[]>([]);
+  const [otherMemoryItemsDetails, setOtherMemoryItemsDetails] = useState("");
   const [customNotes, setCustomNotes] = useState(initialNotes);
   const [personalization, setPersonalization] = useState("");
   
@@ -125,7 +126,8 @@ function CheckoutPage() {
         depth: depth || "Standard",
         price: price,
         submissionMethod: submissionMethod,
-        shippingDate: shippingDate ? format(shippingDate, 'PP') : "",
+        checklist: memoryItemsChecklist,
+        otherItemsDetails: otherMemoryItemsDetails,
         notes: customNotes || personalization,
         address: address,
         status: "Order Received",
@@ -321,10 +323,11 @@ ${trackingLink}`;
                 </div>
 
                 {submissionMethod === "ship" && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                  <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                    
+                    {/* Shipping Address */}
                     <div className="p-5 rounded-xl bg-secondary/50 border border-border">
-                      <h4 className="font-medium flex items-center gap-2 mb-3"><Info className="h-4 w-4 text-gold" /> Shipping Instruction</h4>
-                      <p className="text-sm text-muted-foreground mb-4">Please safely pack and courier your flowers to our studio after placing the order.</p>
+                      <h4 className="font-medium flex items-center gap-2 mb-3"><Info className="h-4 w-4 text-gold" /> Studio Address</h4>
                       <div className="bg-background p-4 rounded-lg border border-border text-sm font-mono leading-relaxed">
                         <strong>Manjima (Eunoia Resin Art)</strong><br/>
                         Jayanthi Nivas (H)<br/>
@@ -332,38 +335,68 @@ ${trackingLink}`;
                         Calicut – 673602<br/>
                         Phone: +91 7591947287
                       </div>
-                      <div className="mt-4 p-3 bg-red-500/10 text-red-600 rounded-lg text-xs font-semibold tracking-wide text-center border border-red-500/20">
+                    </div>
+
+                    {/* Premium Courier Guidance */}
+                    <div className="p-5 rounded-xl bg-[#f5f0e6] border border-[#e8dfc8]">
+                      <h4 className="font-medium flex items-center gap-2 mb-2 text-amber-900"><Truck className="h-4 w-4" /> Recommended Courier</h4>
+                      <p className="text-sm text-amber-800/80 mb-3">We highly recommend using <strong>DTDC Courier</strong>.</p>
+                      <p className="text-sm text-amber-800/80 mb-2">Please avoid: <strong>Normal Post Office Shipping</strong></p>
+                      <p className="text-xs text-amber-800/60 italic mt-3">Reason: Fresh flowers and delicate keepsakes may get damaged during long handling.</p>
+                    </div>
+
+                    {/* Important Packaging Note */}
+                    <div className="p-5 rounded-xl bg-amber-50/50 border border-amber-200/50">
+                      <h4 className="font-medium flex items-center gap-2 mb-3 text-amber-700"><AlertCircle className="h-4 w-4" /> Important Packaging Note</h4>
+                      <p className="text-sm text-amber-900/80 mb-3">Please write this clearly outside your parcel:</p>
+                      <div className="p-3 bg-amber-100 text-amber-900 rounded-lg text-xs font-bold tracking-wider text-center border border-amber-200 uppercase">
                         FRAGILE – DRIED FLOWERS – DO NOT CRUSH
                       </div>
                     </div>
 
+                    {/* Memory Items Checklist */}
                     <div className="space-y-4">
                       <div>
-                        <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium mb-2 block">Expected Shipping Date</label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button
-                              className={cn(
-                                "w-full flex items-center justify-start text-left font-normal bg-secondary/30 border border-border rounded-xl px-4 py-3 text-sm focus:outline-none hover:border-gold transition-colors",
-                                !shippingDate && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-3 h-4 w-4 text-gold" />
-                              {shippingDate ? format(shippingDate, "MMMM d, yyyy") : <span>Pick a future date</span>}
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 border-border shadow-soft" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={shippingDate}
-                              onSelect={setShippingDate}
-                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                              initialFocus
-                              className="rounded-xl"
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <h4 className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium mb-1">Items Included In Your Package</h4>
+                        <p className="text-[10px] text-muted-foreground/70 mb-4">This helps us verify all memory items once your courier reaches our studio. (Not for upload)</p>
+                        
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {["Wedding Flowers / Bouquet", "Thali / Minnu Included", "Rings Included", "Invitation Card Included", "Photos Included", "Other Memory Items"].map((item) => (
+                            <label key={item} className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${memoryItemsChecklist.includes(item) ? "border-gold bg-gold/5" : "border-border hover:border-gold/30 bg-secondary/20"}`}>
+                              <div className={`mt-0.5 h-4 w-4 rounded border flex items-center justify-center ${memoryItemsChecklist.includes(item) ? "border-gold bg-gold text-primary-foreground" : "border-muted-foreground/50"}`}>
+                                {memoryItemsChecklist.includes(item) && <Check className="h-3 w-3" />}
+                              </div>
+                              <span className="text-sm font-medium leading-none">{item}</span>
+                              <input 
+                                type="checkbox" 
+                                className="sr-only"
+                                checked={memoryItemsChecklist.includes(item)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setMemoryItemsChecklist([...memoryItemsChecklist, item]);
+                                  } else {
+                                    setMemoryItemsChecklist(memoryItemsChecklist.filter(i => i !== item));
+                                  }
+                                }}
+                              />
+                            </label>
+                          ))}
+                        </div>
                       </div>
+
+                      {memoryItemsChecklist.includes("Other Memory Items") && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                          <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium block">What else are you sending?</label>
+                          <textarea 
+                            value={otherMemoryItemsDetails} 
+                            onChange={(e) => setOtherMemoryItemsDetails(e.target.value)} 
+                            rows={2} 
+                            className="mt-2 w-full bg-secondary/30 border border-border rounded-xl p-4 text-sm focus:outline-none focus:border-gold transition-colors" 
+                            placeholder="Tell us what else you're sending..." 
+                          />
+                        </div>
+                      )}
+                      
                       <div>
                         <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Special Instructions / Notes</label>
                         <textarea value={customNotes} onChange={(e) => setCustomNotes(e.target.value)} rows={3} className="mt-2 w-full bg-secondary/30 border border-border rounded-xl p-4 text-sm focus:outline-none focus:border-gold transition-colors" placeholder="e.g. 'Use gold accents', 'Minimal design', 'Add names and date'" />
@@ -523,10 +556,17 @@ ${trackingLink}`;
                       </div>
                     </div>
                   )}
-                  {shippingDate && (
-                    <div className="flex justify-between items-center py-1">
-                      <span className="text-muted-foreground">Expected Shipping Date</span>
-                      <span className="font-medium">{format(shippingDate, "MMMM d, yyyy")}</span>
+                  {submissionMethod === "ship" && memoryItemsChecklist.length > 0 && (
+                    <div className="flex flex-col py-1.5 border-t border-border/40 mt-1.5 pt-1.5">
+                      <span className="text-muted-foreground text-xs mb-1">Items Included in Parcel:</span>
+                      <ul className="text-sm font-medium space-y-0.5">
+                        {memoryItemsChecklist.map(item => (
+                          <li key={item} className="flex items-center gap-1.5">
+                            <Check className="h-3 w-3 text-gold" /> {item}
+                            {item === "Other Memory Items" && otherMemoryItemsDetails ? ` - ${otherMemoryItemsDetails}` : ""}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                   <div className="flex justify-between items-center py-1 border-t border-border pt-3">
