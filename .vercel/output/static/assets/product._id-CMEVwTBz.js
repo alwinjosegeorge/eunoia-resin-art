@@ -1,1 +1,0 @@
-import{j as o,L as t}from"./index-CeJExyce.js";const s=()=>o.jsxs("div",{className:"text-center py-32",children:[o.jsx("h1",{className:"font-display text-3xl",children:"Piece not found"}),o.jsx(t,{to:"/shop",className:"text-gold mt-4 inline-block",children:"Back to shop"})]});export{s as notFoundComponent};

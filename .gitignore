@@ -16,6 +16,9 @@ dist-ssr
 .nitro
 *.local
 
+# Vercel build output — must NOT be committed
+.vercel/
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
