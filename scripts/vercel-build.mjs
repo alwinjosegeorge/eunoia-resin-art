@@ -1,7 +1,7 @@
 // scripts/vercel-build.mjs
 // Post-build script: transforms dist/ into .vercel/output/ for Vercel deployment
 import { execSync } from "node:child_process";
-import { cpSync, mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
+import { cpSync, mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -106,11 +106,17 @@ writeFileSync(
   }, null, 2)
 );
 
-// 6.5. Write package.json inside function directory to ensure ES module imports work
+// 6.5. Write package.json inside function directory to ensure ES module imports work and external deps are installed
+const rootPkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+const mongooseVersion = rootPkg.dependencies?.mongoose || "^9.6.2";
+
 writeFileSync(
   `${out}/functions/index.func/package.json`,
   JSON.stringify({
     type: "module",
+    dependencies: {
+      mongoose: mongooseVersion,
+    }
   }, null, 2)
 );
 
