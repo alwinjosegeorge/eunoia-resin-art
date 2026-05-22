@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { products, formatINR } from "@/data/products";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
-import { Heart, Sparkles, Package, Search } from "lucide-react";
+import { Sparkles, Package, Search } from "lucide-react";
 
 export const Route = createFileRoute("/shop")({
   head: () => ({
@@ -232,9 +232,6 @@ function ShopPage() {
                       {p.badge && (
                         <span className="absolute top-3 left-3 bg-foreground text-background text-[9px] tracking-[0.25em] uppercase px-2 py-1 rounded z-10">{p.badge}</span>
                       )}
-                      <button className="absolute top-3 right-3 grid place-items-center h-8 w-8 rounded-full bg-white/80 backdrop-blur hover:text-gold transition z-10">
-                        <Heart className="h-4 w-4" />
-                      </button>
                     </div>
                     <div className="mt-4 text-center">
                       <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">{p.category}</div>

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Search, Heart, ShoppingBag, Menu, X, Package } from "lucide-react";
+import { Search, ShoppingBag, Menu, X, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import logo from "@/assets/logo.png";
 
@@ -111,9 +111,6 @@ export function Navbar() {
             className="text-foreground/70 hover:text-gold transition"
           >
             <Search className="h-[18px] w-[18px]" />
-          </button>
-          <button aria-label="Wishlist" className="text-foreground/70 hover:text-gold transition">
-            <Heart className="h-[18px] w-[18px]" />
           </button>
           <button 
             onClick={() => setTrackingOpen(true)}
