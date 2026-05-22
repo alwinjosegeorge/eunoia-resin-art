@@ -306,20 +306,33 @@ function HomePage() {
               </div>
 
               {/* RIGHT: Full luxury image — order-1 on mobile (shows first), order-2 on desktop */}
-              <div className="lg:col-span-5 order-1 lg:order-2">
-                <img
-                  src={prebooking}
-                  alt="Luxury Flower Preservation Pre-Booking Kit — Silica Gel, Gloves, Airtight Container"
-                  className="w-full object-cover shadow-soft border border-gold/20"
+              <div className="lg:col-span-5 order-1 lg:order-2 flex justify-center">
+                <div
+                  className="w-full max-w-[480px] rounded-[32px] shadow-[0_20px_60px_rgba(201,161,74,0.12)] border border-gold/20 overflow-hidden"
                   style={{
-                    minHeight: "520px",
-                    objectFit: "cover",
-                    borderRadius: "32px",
-                    transition: "transform 0.5s ease",
+                    background: "linear-gradient(180deg, #f8f3eb 0%, #efe4d2 100%)",
+                    transition: "transform 0.5s ease, box-shadow 0.5s ease",
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.01)")}
-                  onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-                />
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.transform = "scale(1.01)";
+                    (e.currentTarget as HTMLElement).style.boxShadow = "0 28px 70px rgba(201,161,74,0.2)";
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                    (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 60px rgba(201,161,74,0.12)";
+                  }}
+                >
+                  <img
+                    src={prebooking}
+                    alt="Luxury Flower Preservation Pre-Booking Kit — Silica Gel, Gloves, Airtight Container"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      display: "block",
+                      objectFit: "contain",
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
