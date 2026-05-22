@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { products, formatINR } from "@/data/products";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
-import { Heart, Sparkles } from "lucide-react";
+import { Heart, Sparkles, Package } from "lucide-react";
 
 export const Route = createFileRoute("/shop")({
   head: () => ({
