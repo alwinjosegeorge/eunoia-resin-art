@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Heart, Flower2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import hero from "@/assets/hero-bouquet.jpeg";
+import prebooking from "@/assets/prebooking.png";
 import { products as staticProducts, formatINR } from "@/data/products";
 import { FloatingPetals } from "@/components/site/FloatingPetals";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
@@ -263,9 +264,9 @@ function HomePage() {
             {/* Ambient decorative lighting */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-gold-light/10 blur-[100px] rounded-full pointer-events-none" />
             <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blush/20 blur-[100px] rounded-full pointer-events-none" />
-            
-            <div className="grid lg:grid-cols-12 gap-12 items-center relative z-10">
-              <div className="lg:col-span-7 space-y-6">
+            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+              {/* LEFT: Text content — order-2 on mobile (shows after image), order-1 on desktop */}
+              <div className="lg:col-span-7 space-y-6 order-2 lg:order-1">
                 <div className="inline-flex items-center gap-2 bg-gold/10 text-gold px-3.5 py-1.5 rounded-full text-[10px] tracking-[0.25em] uppercase font-bold border border-gold/25">
                   <Sparkles className="h-3.5 w-3.5" /> Luxury Safety Pre-Booking
                 </div>
@@ -284,7 +285,7 @@ function HomePage() {
                     🌸 Why This Kit Helps
                   </p>
                   <p>
-                    This preservation kit helps reduce flower discoloration, moisture damage, and petal decay before your memories safely reach our studio. This makes the ₹450 feel like professional preservation care instead of an add-on charge.
+                    This preservation kit helps reduce flower discoloration, moisture damage, and petal decay before your memories safely reach our studio. The ₹450 kit is professional preservation care — not just an add-on.
                   </p>
                 </div>
 
@@ -304,44 +305,21 @@ function HomePage() {
                 </div>
               </div>
 
-              <div className="lg:col-span-5">
-                <div className="glass-card rounded-3xl p-6 md:p-8 border border-gold/30 bg-gradient-to-br from-gold/5 to-transparent space-y-6 relative overflow-hidden shadow-[0_15px_35px_rgba(201,161,74,0.05)]">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-display text-xl font-semibold text-charcoal">🌸 Pre-Booking Kit</h3>
-                      <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-wider">Professional Flower Care</p>
-                    </div>
-                    <span className="text-xs bg-[#c9a14a] text-white font-bold px-3 py-1 rounded-full shadow-sm">
-                      ₹450 Only
-                    </span>
-                  </div>
-
-                  <div className="border-t border-border/40 pt-5">
-                    <span className="text-[10px] tracking-widest uppercase text-muted-foreground font-semibold block mb-3">Included in kit:</span>
-                    <ul className="space-y-3 text-xs text-muted-foreground">
-                      <li className="flex items-center gap-2.5">
-                        <span className="text-gold flex-shrink-0">✦</span> 
-                        <span><strong>1kg Silica Gel:</strong> Keeps petals pristine</span>
-                      </li>
-                      <li className="flex items-center gap-2.5">
-                        <span className="text-gold flex-shrink-0">✦</span> 
-                        <span><strong>Protective Gloves:</strong> Prevent oil & acid transfer</span>
-                      </li>
-                      <li className="flex items-center gap-2.5">
-                        <span className="text-gold flex-shrink-0">✦</span> 
-                        <span><strong>Airtight Container:</strong> Locks out tropical moisture</span>
-                      </li>
-                      <li className="flex items-center gap-2.5">
-                        <span className="text-gold flex-shrink-0">✦</span> 
-                        <span><strong>Instruction Card:</strong> Step-by-step drying guide</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="text-[10px] text-gold/80 italic pt-2 border-t border-border/10">
-                    🚚 Dispatched shortly after pre-booking confirmation.
-                  </div>
-                </div>
+              {/* RIGHT: Full luxury image — order-1 on mobile (shows first), order-2 on desktop */}
+              <div className="lg:col-span-5 order-1 lg:order-2">
+                <img
+                  src={prebooking}
+                  alt="Luxury Flower Preservation Pre-Booking Kit — Silica Gel, Gloves, Airtight Container"
+                  className="w-full object-cover shadow-soft border border-gold/20"
+                  style={{
+                    minHeight: "520px",
+                    objectFit: "cover",
+                    borderRadius: "32px",
+                    transition: "transform 0.5s ease",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.01)")}
+                  onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                />
               </div>
             </div>
           </div>

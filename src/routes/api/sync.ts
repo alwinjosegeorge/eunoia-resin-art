@@ -58,6 +58,7 @@ export const Route = createFileRoute("/api/sync")({
                 preBookingKit: orderData.preBookingKit || false,
                 kitPrice: Number(orderData.kitPrice) || 0,
                 kitStatus: orderData.kitStatus || "",
+                paymentStatus: orderData.paymentStatus || "No Payment Yet",
                 createdAt: orderData.createdAt ? new Date(orderData.createdAt) : new Date(),
                 timeline: timeline
               });

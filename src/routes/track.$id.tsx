@@ -133,6 +133,10 @@ function TrackOrderPage() {
 
   if (!isKitOrder) {
     stages[1] = stage2Name;
+    // If upload method, also rename stage[2] from "Flowers Received" to "Images Received"
+    if (isUpload) {
+      stages[2] = "Images Received";
+    }
   }
 
   // Determine current active stage index based on status and kit status
@@ -238,7 +242,79 @@ function TrackOrderPage() {
         </div>
       </ScrollReveal>
 
-      {/* Latest Production Photo or Uploaded Photo */}
+      {/* Payment Status Card */}
+      {order.paymentStatus && (
+        <ScrollReveal delay={120}>
+          <div className={`glass-card rounded-3xl p-6 md:p-8 mb-10 border relative overflow-hidden ${
+            order.paymentStatus === "Fully Paid"
+              ? "border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent"
+              : order.paymentStatus === "Starter Kit Advance Paid"
+              ? "border-gold/30 bg-gradient-to-br from-gold/5 to-transparent"
+              : order.paymentStatus === "Final Payment Pending"
+              ? "border-orange-400/30 bg-gradient-to-br from-orange-400/5 to-transparent"
+              : "border-border bg-gradient-to-br from-secondary/30 to-transparent"
+          }`}>
+            <div className="flex items-start gap-4">
+              <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center text-lg ${
+                order.paymentStatus === "Fully Paid"
+                  ? "bg-green-500/15"
+                  : order.paymentStatus === "Starter Kit Advance Paid"
+                  ? "bg-gold/15"
+                  : order.paymentStatus === "Final Payment Pending"
+                  ? "bg-orange-400/15"
+                  : "bg-secondary"
+              }`}>
+                {order.paymentStatus === "Fully Paid" ? "✅"
+                  : order.paymentStatus === "Starter Kit Advance Paid" ? "🟡"
+                  : order.paymentStatus === "Final Payment Pending" ? "🟠"
+                  : "💳"}
+              </div>
+              <div className="flex-1">
+                <div className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-1">Payment</div>
+                {order.paymentStatus === "Fully Paid" ? (
+                  <>
+                    <div className="font-display text-xl text-green-600 font-semibold">✔ Fully Paid</div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Your order is fully paid. Sit back and let Manjima create your eternal memory.
+                    </p>
+                  </>
+                ) : order.paymentStatus === "Starter Kit Advance Paid" ? (
+                  <>
+                    <div className="font-display text-xl text-gold font-semibold">✔ Starter Kit Advance Paid</div>
+                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                      Your kit advance has been received. The remaining balance will be collected once your flowers safely reach our Calicut studio.
+                    </p>
+                  </>
+                ) : order.paymentStatus === "Final Payment Pending" ? (
+                  <>
+                    <div className="font-display text-xl text-orange-500 font-semibold">Final Payment Pending</div>
+                    <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                      Your flowers have arrived safely. Please complete the final payment to begin production.
+                      Contact Manjima on WhatsApp to proceed.
+                    </p>
+                    <a
+                      href={`https://wa.me/917591947287?text=${encodeURIComponent(`Hi Manjima, I would like to make the final payment for my order *${order.id}*.`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-[#25D366]/20 transition"
+                    >
+                      💬 Message on WhatsApp
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <div className="font-display text-xl text-foreground/70">No Payment Yet</div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Payment will be collected once your order is confirmed and processed by our studio.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+      )}
+
       {order.previewImage && (
         <ScrollReveal delay={150}>
           <div className="glass-card rounded-3xl p-6 md:p-8 mb-12 border-gold/30 shadow-[0_0_20px_rgba(201,161,74,0.1)]">

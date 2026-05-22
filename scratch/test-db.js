@@ -2,17 +2,19 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = "mongodb+srv://eunoia_db_user:eunoia%402026@cluster0.z4udyji.mongodb.net/eunoia_resin_art?retryWrites=true&w=majority";
 
-async function test() {
-  console.log("Connecting to MongoDB:", MONGODB_URI);
+async function testConnection() {
+  console.log("Attempting to connect to MongoDB Atlas...");
   try {
-    await mongoose.connect(MONGODB_URI);
-    console.log("Connected successfully!");
-    const dbs = await mongoose.connection.db.admin().listDatabases();
-    console.log("Databases:", dbs);
-    await mongoose.disconnect();
+    const conn = await mongoose.connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000 // 5 seconds timeout
+    });
+    console.log("SUCCESS: Connected to MongoDB successfully!");
+    console.log("Ready state:", mongoose.connection.readyState);
+    await mongoose.connection.close();
+    console.log("Connection closed.");
   } catch (err) {
-    console.error("Connection failed:", err);
+    console.error("FAILURE: Could not connect to MongoDB:", err.message || err);
   }
 }
 
-test();
+testConnection();

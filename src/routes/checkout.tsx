@@ -380,9 +380,9 @@ ${trackingLink}`;
                     {/* Premium Courier Guidance */}
                     <div className="p-5 rounded-xl bg-[#f5f0e6] border border-[#e8dfc8]">
                       <h4 className="font-medium flex items-center gap-2 mb-2 text-amber-900"><Truck className="h-4 w-4" /> Recommended Courier</h4>
-                      <p className="text-sm text-amber-800/80 mb-3">We highly recommend using <strong>DTDC Courier</strong>.</p>
-                      <p className="text-sm text-amber-800/80 mb-2">Please avoid: <strong>Normal Post Office Shipping</strong></p>
-                      <p className="text-xs text-amber-800/60 italic mt-3">Reason: Fresh flowers and delicate keepsakes may get damaged during long handling.</p>
+                      <p className="text-sm text-amber-800/80 mb-2">We recommend <strong>DTDC</strong>, <strong>BlueDart</strong>, or other professional courier services.</p>
+                      <p className="text-sm text-amber-800/80 mb-2">Please avoid: <strong>Regular Post Office Shipping</strong></p>
+                      <p className="text-xs text-amber-800/60 italic mt-3">Reason: Delicate flower preservation orders require careful handling — professional couriers ensure safe delivery.</p>
                     </div>
 
                     {/* Flower Preservation Starter Kit Selectable Card */}
@@ -439,7 +439,7 @@ ${trackingLink}`;
                       <h4 className="font-medium flex items-center gap-2 mb-3 text-amber-700"><AlertCircle className="h-4 w-4" /> Important Packaging Note</h4>
                       <p className="text-sm text-amber-900/80 mb-3">Please write this clearly outside your parcel:</p>
                       <div className="p-3 bg-amber-100 text-amber-900 rounded-lg text-xs font-bold tracking-wider text-center border border-amber-200 uppercase">
-                        FRAGILE – DRIED FLOWERS – DO NOT CRUSH
+                        FRAGILE • DRIED FLOWERS • HANDLE WITH CARE • DO NOT CRUSH
                       </div>
                     </div>
 

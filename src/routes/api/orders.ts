@@ -58,6 +58,7 @@ export const Route = createFileRoute("/api/orders")({
             preBookingKit: body.preBookingKit || false,
             kitPrice: Number(body.kitPrice) || 0,
             kitStatus: body.kitStatus || "",
+            paymentStatus: body.paymentStatus || "No Payment Yet",
             createdAt: body.createdAt ? new Date(body.createdAt) : new Date(),
             timeline: timeline
           });

@@ -455,6 +455,22 @@ function DashboardPage() {
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <span className="font-mono text-xs">{order.id}</span>
                             <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider flex-shrink-0 ${order.status === "Drying Process" ? "bg-gold/10 text-gold border border-gold/20" : "bg-secondary text-muted-foreground border border-border"}`}>{order.status}</span>
+                            {order.paymentStatus && order.paymentStatus !== "No Payment Yet" && (
+                               <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase tracking-widest font-bold flex-shrink-0 border ${
+                                 order.paymentStatus === "Fully Paid"
+                                   ? "bg-green-500/10 text-green-600 border-green-500/30"
+                                   : order.paymentStatus === "Starter Kit Advance Paid"
+                                   ? "bg-gold/10 text-gold border-gold/30"
+                                   : order.paymentStatus === "Final Payment Pending"
+                                   ? "bg-orange-400/10 text-orange-500 border-orange-400/30"
+                                   : "bg-secondary text-muted-foreground border-border"
+                               }`}>
+                                 {order.paymentStatus === "Fully Paid" ? "✔ Fully Paid"
+                                   : order.paymentStatus === "Starter Kit Advance Paid" ? "🟡 Kit Advance"
+                                   : order.paymentStatus === "Final Payment Pending" ? "🟠 Payment Pending"
+                                   : order.paymentStatus}
+                               </span>
+                             )}
                           </div>
                           <div className="font-medium text-sm md:text-base truncate">{order.customerName}</div>
                           <div className="text-xs text-muted-foreground mt-0.5 truncate">{order.productName}</div>
@@ -608,6 +624,7 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
   const [adminNotes, setAdminNotes] = React.useState(order.adminNotes || "");
   const [previewImage, setPreviewImage] = React.useState(order.previewImage || "");
   const [kitStatus, setKitStatus] = React.useState(order.kitStatus || (order.preBookingKit ? "Pending" : ""));
+  const [paymentStatus, setPaymentStatus] = React.useState(order.paymentStatus || "No Payment Yet");
   const [isSavingLocal, setIsSavingLocal] = React.useState(false);
 
   React.useEffect(() => {
@@ -617,6 +634,7 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
     setAdminNotes(order.adminNotes || "");
     setPreviewImage(order.previewImage || "");
     setKitStatus(order.kitStatus || (order.preBookingKit ? "Pending" : ""));
+    setPaymentStatus(order.paymentStatus || "No Payment Yet");
   }, [order]);
 
   const hasChanges = 
@@ -625,7 +643,8 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
     courierDetails !== (order.courierDetails || "") ||
     adminNotes !== (order.adminNotes || "") ||
     previewImage !== (order.previewImage || "") ||
-    kitStatus !== (order.kitStatus || (order.preBookingKit ? "Pending" : ""));
+    kitStatus !== (order.kitStatus || (order.preBookingKit ? "Pending" : "")) ||
+    paymentStatus !== (order.paymentStatus || "No Payment Yet");
 
   const handleLocalImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -648,7 +667,8 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
         courierDetails,
         adminNotes,
         previewImage,
-        kitStatus
+        kitStatus,
+        paymentStatus
       });
     } catch (err: any) {
       console.error("Save error:", err);
@@ -712,6 +732,32 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
           <select value={status} onChange={e => setStatus(e.target.value)}
             className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold">
             {ALL_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={lbl + " mb-2 block flex items-center gap-1.5"}>
+            <span className={`inline-block w-2 h-2 rounded-full ${
+              paymentStatus === "Fully Paid" ? "bg-green-500"
+              : paymentStatus === "Starter Kit Advance Paid" ? "bg-gold"
+              : paymentStatus === "Final Payment Pending" ? "bg-orange-400"
+              : "bg-muted-foreground/40"
+            }`} />
+            Payment Status
+          </label>
+          <select value={paymentStatus} onChange={e => setPaymentStatus(e.target.value)}
+            className={`w-full border rounded-xl px-4 py-3 text-sm font-medium focus:outline-none transition ${
+              paymentStatus === "Fully Paid"
+                ? "bg-green-500/5 border-green-500/30 text-green-600 focus:border-green-500"
+                : paymentStatus === "Starter Kit Advance Paid"
+                ? "bg-gold/5 border-gold/30 text-gold focus:border-gold"
+                : paymentStatus === "Final Payment Pending"
+                ? "bg-orange-400/5 border-orange-400/30 text-orange-500 focus:border-orange-400"
+                : "bg-background border-border text-foreground focus:border-gold"
+            }`}>
+            <option value="No Payment Yet">No Payment Yet</option>
+            <option value="Starter Kit Advance Paid">🟡 Starter Kit Advance Paid</option>
+            <option value="Final Payment Pending">🟠 Final Payment Pending</option>
+            <option value="Fully Paid">🟢 Fully Paid</option>
           </select>
         </div>
         <div>

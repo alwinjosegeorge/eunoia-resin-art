@@ -39,6 +39,7 @@ export interface IOrder extends Document {
   preBookingKit?: boolean;
   kitPrice?: number;
   kitStatus?: string;
+  paymentStatus?: "No Payment Yet" | "Starter Kit Advance Paid" | "Final Payment Pending" | "Fully Paid" | string;
 }
 
 const OrderSchema: Schema = new Schema(
@@ -69,6 +70,7 @@ const OrderSchema: Schema = new Schema(
     preBookingKit: { type: Boolean, default: false },
     kitPrice: { type: Number, default: 0 },
     kitStatus: { type: String, default: "" },
+    paymentStatus: { type: String, default: "No Payment Yet", required: true },
     createdAt: { type: Date, default: Date.now, required: true, index: true },
     timeline: [
       {
