@@ -119,46 +119,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                function showError(title, message, stack) {
-                  var div = document.getElementById('client-crash-banner');
-                  if (!div) {
-                    div = document.createElement('div');
-                    div.id = 'client-crash-banner';
-                    div.style.position = 'fixed';
-                    div.style.top = '0';
-                    div.style.left = '0';
-                    div.style.width = '100%';
-                    div.style.backgroundColor = '#fee2e2';
-                    div.style.color = '#991b1b';
-                    div.style.padding = '24px';
-                    div.style.zIndex = '9999999';
-                    div.style.borderBottom = '4px solid #ef4444';
-                    div.style.fontFamily = 'monospace';
-                    div.style.fontSize = '14px';
-                    div.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
-                    div.style.maxHeight = '70vh';
-                    div.style.overflow = 'auto';
-                    document.documentElement.appendChild(div);
-                  }
-                  div.innerHTML = '<strong>' + title + ':</strong> ' + message + 
-                    (stack ? '<br/><pre style="margin-top: 12px; font-size: 11px; white-space: pre-wrap; background: rgba(0,0,0,0.05); padding: 12px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1);">' + stack + '</pre>' : '');
-                }
-                window.addEventListener('error', function(e) {
-                  showError('Client-Side JS Crash', e.message || String(e), e.error ? e.error.stack : null);
-                });
-                window.addEventListener('unhandledrejection', function(e) {
-                  var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Promise rejected';
-                  var stack = (e.reason && e.reason.stack) ? e.reason.stack : null;
-                  showError('Client-Side Unhandled Rejection', msg, stack);
-                });
-              })();
-            `
-          }}
-        />
       </head>
       <body>
         {children}
