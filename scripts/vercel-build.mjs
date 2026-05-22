@@ -100,7 +100,17 @@ writeFileSync(
   `${out}/functions/index.func/.vc-config.json`,
   JSON.stringify({
     runtime: "nodejs20.x",
-    entrypoint: "index.js",
+    handler: "index.js",
+    launcherType: "Nodejs",
+    shouldAddHelpers: true,
+  }, null, 2)
+);
+
+// 6.5. Write package.json inside function directory to ensure ES module imports work
+writeFileSync(
+  `${out}/functions/index.func/package.json`,
+  JSON.stringify({
+    type: "module",
   }, null, 2)
 );
 
