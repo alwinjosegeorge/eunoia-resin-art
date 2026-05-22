@@ -76,8 +76,30 @@ function CheckoutPage() {
     reader.readAsDataURL(file);
   };
 
+  const isStepValid = () => {
+    if (step === 0) {
+      return !!submissionMethod;
+    }
+    if (step === 1) {
+      return (
+        customer.name.trim().length > 0 &&
+        customer.mobile.trim().replace(/\s+/g, "").length >= 10
+      );
+    }
+    if (step === 2) {
+      return (
+        address.house.trim().length > 0 &&
+        address.area.trim().length > 0 &&
+        address.district.trim().length > 0 &&
+        address.state.trim().length > 0 &&
+        address.pin.trim().replace(/\s+/g, "").length === 6
+      );
+    }
+    return true;
+  };
+
   const handleNext = () => {
-    if (step < steps.length - 1) {
+    if (step < steps.length - 1 && isStepValid()) {
       setStep(step + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -108,7 +130,7 @@ function CheckoutPage() {
   const handlePayment = () => {
     setIsProcessing(true);
     // Simulate generation delay
-    setTimeout(async () => {
+    setTimeout(() => {
       const orderId = `ERA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
       const expectedDate = getExpectedCompletionDate(30);
       
@@ -131,22 +153,23 @@ function CheckoutPage() {
         createdAt: new Date().toISOString()
       };
 
-      // save to MongoDB
-      try {
-        const mongoRes = await fetch("/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(newOrder),
+      // save to MongoDB asynchronously in the background so it never blocks the UI on DB connection latency
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newOrder),
+      })
+        .then(async (mongoRes) => {
+          if (!mongoRes.ok) {
+            const errData = await mongoRes.json().catch(() => ({}));
+            console.error("Failed to save order to MongoDB in background:", errData.error || mongoRes.statusText);
+          } else {
+            console.log("Successfully saved order to MongoDB in background");
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to save order to MongoDB:", err);
         });
-        if (!mongoRes.ok) {
-          const errData = await mongoRes.json().catch(() => ({}));
-          console.error("Failed to save order to MongoDB:", errData.error || mongoRes.statusText);
-        } else {
-          console.log("Successfully saved order to MongoDB");
-        }
-      } catch (err) {
-        console.error("Failed to save order to MongoDB:", err);
-      }
 
       // save to localStorage as a backup
       const existingOrders = JSON.parse(localStorage.getItem("era_orders") || "[]");
@@ -227,32 +250,34 @@ ${trackingLink}`;
             <div className="p-4 rounded-xl bg-gold/5 border border-gold/20 text-xs text-muted-foreground leading-relaxed max-w-md mx-auto space-y-2">
               <p className="font-medium text-foreground">💬 WhatsApp Payment Setup</p>
               <p>
-                We have opened a WhatsApp chat with our artist <span className="text-foreground font-semibold">Manjima</span> in a new tab. Please send the message to complete payment setup and confirm your design notes.
+                Please open the WhatsApp chat with our artist <span className="text-foreground font-semibold">Manjima</span> using the button below to complete payment setup and confirm your design notes.
               </p>
-              <a 
-                href={`https://wa.me/917591947287?text=${encodeURIComponent(`🌸 *Eunoia Resin Art Order Update*\n\nMy Order ID is *${submittedOrderId}*. I am ready to complete my payment!`)}`}
-                target="_blank" 
-                rel="noreferrer"
-                className="inline-block mt-2 text-gold hover:underline font-semibold"
-              >
-                Didn't open? Click here to chat →
-              </a>
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4 max-w-md mx-auto">
-              <Link
-                to="/"
-                className="flex-1 inline-flex justify-center items-center px-6 py-3.5 border border-border rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-secondary transition font-medium"
+            <div className="flex flex-col gap-3 justify-center pt-4 max-w-md mx-auto">
+              <a 
+                href={`https://wa.me/917591947287?text=${encodeURIComponent(`🌸 *New Eunoia Resin Art Order*\n\n🆔 *Order ID:* ${submittedOrderId}\n👤 *Customer:* ${customer.name}\n📱 *Phone:* ${customer.mobile}\n📦 *Product:* ${productName} ${depth ? `(${depth})` : ""}\n🔗 *Track Order:* https://eunoia-resin-art.vercel.app/track/${submittedOrderId}`)}`}
+                target="_blank" 
+                rel="noreferrer"
+                className="w-full inline-flex justify-center items-center px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase font-semibold hover:scale-[1.01] shadow-lg transition-all"
               >
-                Back to Home
-              </Link>
-              <Link
-                to={`/track/${submittedOrderId}`}
-                className="flex-1 inline-flex justify-center items-center px-6 py-3.5 bg-gold text-primary-foreground rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase font-semibold hover:opacity-90 shadow-gold transition-all"
-              >
-                Track Live Progress →
-              </Link>
+                💬 Confirm & Order via WhatsApp →
+              </a>
+              <div className="flex flex-col sm:flex-row gap-3 w-full">
+                <Link
+                  to="/"
+                  className="flex-1 inline-flex justify-center items-center px-6 py-3.5 border border-border rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase hover:bg-secondary transition font-medium"
+                >
+                  Back to Home
+                </Link>
+                <Link
+                  to={`/track/${submittedOrderId}`}
+                  className="flex-1 inline-flex justify-center items-center px-6 py-3.5 bg-gold text-primary-foreground rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase font-semibold hover:opacity-90 shadow-gold transition-all"
+                >
+                  Track Live Progress →
+                </Link>
+              </div>
             </div>
           </div>
         </ScrollReveal>
@@ -470,12 +495,12 @@ ${trackingLink}`;
                 <h3 className="font-display text-2xl flex items-center gap-3"><User className="h-6 w-6 text-gold" /> Customer Details</h3>
                 <div className="space-y-5">
                   <div>
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Full Name</label>
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium flex items-center gap-1">Full Name <span className="text-red-500 font-bold">*</span></label>
                     <input value={customer.name} onChange={(e) => setCustomer({...customer, name: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-3 text-base focus:border-gold outline-none transition-colors" placeholder="Enter your full name" />
                   </div>
                   <div>
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Mobile Number</label>
-                    <input value={customer.mobile} onChange={(e) => setCustomer({...customer, mobile: e.target.value})} type="tel" className="mt-2 w-full bg-transparent border-b border-border py-3 text-base focus:border-gold outline-none transition-colors" placeholder="+91" />
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium flex items-center gap-1">Mobile Number <span className="text-red-500 font-bold">*</span></label>
+                    <input value={customer.mobile} onChange={(e) => setCustomer({...customer, mobile: e.target.value})} type="tel" className="mt-2 w-full bg-transparent border-b border-border py-3 text-base focus:border-gold outline-none transition-colors" placeholder="e.g. +91 9876543210 (Minimum 10 digits)" />
                   </div>
                   <div>
                     <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">WhatsApp Number (Optional)</label>
@@ -493,28 +518,28 @@ ${trackingLink}`;
                 <h3 className="font-display text-2xl flex items-center gap-3"><MapPin className="h-6 w-6 text-gold" /> Delivery Address</h3>
                 <div className="grid sm:grid-cols-2 gap-x-5 gap-y-6">
                   <div className="sm:col-span-2">
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">House Name / Flat</label>
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium flex items-center gap-1">House Name / Flat <span className="text-red-500 font-bold">*</span></label>
                     <input value={address.house} onChange={(e) => setAddress({...address, house: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-2 text-sm focus:border-gold outline-none transition-colors" placeholder="e.g. Rose Villa, Apt 4B" />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Area / Street</label>
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium flex items-center gap-1">Area / Street <span className="text-red-500 font-bold">*</span></label>
                     <input value={address.area} onChange={(e) => setAddress({...address, area: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-2 text-sm focus:border-gold outline-none transition-colors" placeholder="Street name, neighborhood" />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Landmark</label>
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Landmark (Optional)</label>
                     <input value={address.landmark} onChange={(e) => setAddress({...address, landmark: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-2 text-sm focus:border-gold outline-none transition-colors" placeholder="Near post office" />
                   </div>
                   <div>
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">District / City</label>
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium flex items-center gap-1">District / City <span className="text-red-500 font-bold">*</span></label>
                     <input value={address.district} onChange={(e) => setAddress({...address, district: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-2 text-sm focus:border-gold outline-none transition-colors" placeholder="District" />
                   </div>
                   <div>
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">State</label>
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium flex items-center gap-1">State <span className="text-red-500 font-bold">*</span></label>
                     <input value={address.state} onChange={(e) => setAddress({...address, state: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-2 text-sm focus:border-gold outline-none transition-colors" placeholder="State" />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">PIN Code</label>
-                    <input value={address.pin} onChange={(e) => setAddress({...address, pin: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-2 text-sm focus:border-gold outline-none transition-colors" placeholder="6 digits" />
+                    <label className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium flex items-center gap-1">PIN Code <span className="text-red-500 font-bold">*</span></label>
+                    <input value={address.pin} onChange={(e) => setAddress({...address, pin: e.target.value})} className="mt-2 w-full bg-transparent border-b border-border py-2 text-sm focus:border-gold outline-none transition-colors" placeholder="e.g. 673602 (Exactly 6 digits)" />
                   </div>
                 </div>
               </div>
@@ -626,7 +651,7 @@ ${trackingLink}`;
               </button>
               <button
                 onClick={handleNext}
-                disabled={step === 0 && !submissionMethod}
+                disabled={!isStepValid()}
                 className="px-8 py-3 bg-gold text-primary-foreground rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase hover:opacity-90 hover:scale-[1.02] shadow-gold transition-all disabled:opacity-50 disabled:pointer-events-none"
               >
                 Continue →
