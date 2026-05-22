@@ -14,6 +14,9 @@ let isSsr = false;
 // @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
 export default defineConfig({
   cloudflare: false,
+  tanstackStart: {
+    ssr: false,
+  },
   vite: {
     ssr: {
       noExternal: isBuild
