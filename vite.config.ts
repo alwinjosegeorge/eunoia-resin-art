@@ -21,7 +21,7 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      noExternal: [],
+      noExternal: isBuild ? [/^(?!mongoose|mongodb|bson|mongodb-connection-string-url).*$/] : [],
     },
     plugins: [
       {
