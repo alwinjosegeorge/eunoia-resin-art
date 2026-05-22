@@ -79,7 +79,7 @@ export function Footer() {
             onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
             onMouseLeave={e => (e.currentTarget.style.opacity = "0.7")}
           >
-            Designed &amp; Developed by Codexora Studio ✦
+            Designed &amp; Developed by <span style={{ color: "#1a1a1a", fontWeight: 600 }}>Codexora Studio</span> ✦
           </a>
         </div>
       </div>
