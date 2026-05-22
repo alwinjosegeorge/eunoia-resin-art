@@ -63,6 +63,25 @@ export function Footer() {
       </div>
       <div className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
         © Eunoia Resin Art. Handcrafted with soul by Manjima.
+        <div style={{ marginTop: "8px" }}>
+          <a
+            href="https://codexora-studio.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: "11px",
+              letterSpacing: "0.08em",
+              opacity: 0.7,
+              transition: "opacity 0.3s ease",
+              textDecoration: "none",
+              color: "inherit",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "0.7")}
+          >
+            Designed &amp; Developed by Codexora Studio ✦
+          </a>
+        </div>
       </div>
     </footer>
   );
