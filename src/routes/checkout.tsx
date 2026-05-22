@@ -1,12 +1,8 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
-import { pricingVariants, formatINR } from "@/data/products";
-import { Check, ChevronRight, Upload, ShieldCheck, Heart, MapPin, Phone, User, Clock, AlertCircle, Info, Image as ImageIcon, Flower2, Calendar as CalendarIcon, ArrowLeft, Truck } from "lucide-react";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { pricingVariants } from "@/data/products";
+import { Check, Upload, ShieldCheck, MapPin, User, AlertCircle, Info, Image as ImageIcon, Flower2, ArrowLeft, Truck } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -16,7 +12,6 @@ const steps = ["Memory Method", "Customer Details", "Delivery Address", "Confirm
 
 function CheckoutPage() {
   const search: any = Route.useSearch();
-  const navigate = useNavigate();
 
   const variantId = search.variantId || "5x5-frame";
   const depth = search.depth || "";
