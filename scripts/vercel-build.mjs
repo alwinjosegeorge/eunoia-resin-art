@@ -120,6 +120,10 @@ writeFileSync(
   }, null, 2)
 );
 
+// 6.7. Install external dependencies inside the function directory so they are packaged by Vercel
+console.log("📦 Installing external dependencies in the function directory...");
+execSync("npm install --omit=dev", { cwd: `${out}/functions/index.func`, stdio: "inherit" });
+
 // 7. Vercel output config — serve static files directly, SSR everything else
 writeFileSync(
   `${out}/config.json`,
