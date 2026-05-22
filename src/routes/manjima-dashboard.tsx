@@ -607,6 +607,7 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
   const [courierDetails, setCourierDetails] = React.useState(order.courierDetails || "");
   const [adminNotes, setAdminNotes] = React.useState(order.adminNotes || "");
   const [previewImage, setPreviewImage] = React.useState(order.previewImage || "");
+  const [kitStatus, setKitStatus] = React.useState(order.kitStatus || (order.preBookingKit ? "Pending" : ""));
   const [isSavingLocal, setIsSavingLocal] = React.useState(false);
 
   React.useEffect(() => {
@@ -615,6 +616,7 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
     setCourierDetails(order.courierDetails || "");
     setAdminNotes(order.adminNotes || "");
     setPreviewImage(order.previewImage || "");
+    setKitStatus(order.kitStatus || (order.preBookingKit ? "Pending" : ""));
   }, [order]);
 
   const hasChanges = 
@@ -622,7 +624,8 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
     expectedCompletionDate !== (order.expectedCompletionDate || "") ||
     courierDetails !== (order.courierDetails || "") ||
     adminNotes !== (order.adminNotes || "") ||
-    previewImage !== (order.previewImage || "");
+    previewImage !== (order.previewImage || "") ||
+    kitStatus !== (order.kitStatus || (order.preBookingKit ? "Pending" : ""));
 
   const handleLocalImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -644,7 +647,8 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
         expectedCompletionDate,
         courierDetails,
         adminNotes,
-        previewImage
+        previewImage,
+        kitStatus
       });
     } catch (err: any) {
       console.error("Save error:", err);
@@ -662,6 +666,12 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
             <span className={`${cls as string} text-right`}>{val}</span>
           </div>
         ))}
+        {order.preBookingKit && (
+          <div className="flex justify-between border-b border-border pb-2 items-center gap-2">
+            <span className="text-gold font-medium">Starter Kit Required</span>
+            <span className="px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider bg-gold/10 text-gold border border-gold/20 font-bold">YES</span>
+          </div>
+        )}
         {order.customerWhatsapp && (
           <div className="flex justify-between border-b border-border pb-2">
             <span className="text-[#25D366] font-medium">WhatsApp</span>
@@ -685,6 +695,18 @@ function OrderEditor({ order, onSave, whatsAppLink }: {
       </div>
 
       <div className="space-y-4">
+        {order.preBookingKit && (
+          <div>
+            <label className={lbl + " mb-2 block flex items-center gap-1.5 text-gold font-semibold"}>🌸 Kit Shipment Status</label>
+            <select value={kitStatus} onChange={e => setKitStatus(e.target.value)}
+              className="w-full bg-[#f5f0e6] border border-gold/30 text-gold font-medium rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-gold">
+              <option value="Pending">Pending</option>
+              <option value="Packed">Packed</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+          </div>
+        )}
         <div>
           <label className={lbl + " mb-2 block"}>Production Stage</label>
           <select value={status} onChange={e => setStatus(e.target.value)}

@@ -55,6 +55,9 @@ export const Route = createFileRoute("/api/orders")({
             previewImage: sanitizeImageField(body.previewImage, body.productName),
             adminNotes: body.adminNotes,
             courierDetails: body.courierDetails,
+            preBookingKit: body.preBookingKit || false,
+            kitPrice: Number(body.kitPrice) || 0,
+            kitStatus: body.kitStatus || "",
             createdAt: body.createdAt ? new Date(body.createdAt) : new Date(),
             timeline: timeline
           });

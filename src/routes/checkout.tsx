@@ -37,16 +37,26 @@ function CheckoutPage() {
   
   const productName = dbProduct ? dbProduct.name : variant.name;
   
-  const price = dbProduct 
+  const [preBookingKit, setPreBookingKit] = useState<boolean>(search.preBookingKit === "true");
+
+  const basePrice = dbProduct 
     ? (Number(dbProduct.pricingMatrix?.find((r: any) => r.size === search.size && r.depth === depth)?.price) || Number(dbProduct.pricingMatrix?.[0]?.price) || 0)
     : (search.price ? Number(search.price) : (variant.depths 
         ? variant.depths.find(d => d.size === depth)?.price || 0 
         : variant.basePrice || 0));
 
+  const price = basePrice + (preBookingKit ? 450 : 0);
+
   const [step, setStep] = useState(0);
 
   // Form State
-  const [submissionMethod, setSubmissionMethod] = useState<"ship" | "upload" | "">("");
+  const [submissionMethod, setSubmissionMethod] = useState<"ship" | "upload" | "">(search.submissionMethod || "");
+
+  useEffect(() => {
+    if (submissionMethod === "upload") {
+      setPreBookingKit(false);
+    }
+  }, [submissionMethod]);
   const [memoryItemsChecklist, setMemoryItemsChecklist] = useState<string[]>([]);
   const [otherMemoryItemsDetails, setOtherMemoryItemsDetails] = useState("");
   const [customNotes, setCustomNotes] = useState(initialNotes);
@@ -150,7 +160,10 @@ function CheckoutPage() {
         status: "Order Received",
         expectedCompletionDate: expectedDate,
         previewImage: uploadedImage,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        preBookingKit: preBookingKit,
+        kitPrice: preBookingKit ? 450 : 0,
+        kitStatus: preBookingKit ? "Pending" : ""
       };
 
       // save to MongoDB asynchronously in the background so it never blocks the UI on DB connection latency
@@ -187,6 +200,7 @@ function CheckoutPage() {
 
 📦 *Product:*
 ${productName} ${depth ? `(${depth})` : ""}
+${preBookingKit ? `🌸 *Pre-Booking Kit:* YES (+₹450)\n⚠️ _Note: Customer requires a preservation starter kit before flower shipment._` : ""}
 
 📝 *Notes:*
 ${customNotes || personalization || "None"}
@@ -240,6 +254,12 @@ ${trackingLink}`;
                 <span className="text-xs text-muted-foreground">Submission Method</span>
                 <span className="text-xs font-medium capitalize">{submissionMethod === "ship" ? "Ship Real Flowers" : "Upload Images Only"}</span>
               </div>
+              {preBookingKit && (
+                <div className="flex justify-between items-center border-t border-border/40 pt-3">
+                  <span className="text-xs text-muted-foreground">Pre-Booking Kit</span>
+                  <span className="text-xs font-medium text-gold">YES (+₹450)</span>
+                </div>
+              )}
               <div className="flex justify-between items-center border-t border-border pt-3">
                 <span className="text-xs text-muted-foreground">Total Amount</span>
                 <span className="text-sm font-display text-gold">Rs. {price.toLocaleString("en-IN")}</span>
@@ -257,7 +277,7 @@ ${trackingLink}`;
             {/* Buttons */}
             <div className="flex flex-col gap-3 justify-center pt-4 max-w-md mx-auto">
               <a 
-                href={`https://wa.me/917591947287?text=${encodeURIComponent(`🌸 *New Eunoia Resin Art Order*\n\n🆔 *Order ID:* ${submittedOrderId}\n👤 *Customer:* ${customer.name}\n📱 *Phone:* ${customer.mobile}\n📦 *Product:* ${productName} ${depth ? `(${depth})` : ""}\n🔗 *Track Order:* https://eunoia-resin-art.vercel.app/track/${submittedOrderId}`)}`}
+                href={`https://wa.me/917591947287?text=${encodeURIComponent(`🌸 *New Eunoia Resin Art Order*\n\n🆔 *Order ID:* ${submittedOrderId}\n👤 *Customer:* ${customer.name}\n📱 *Phone:* ${customer.mobile}\n📦 *Product:* ${productName} ${depth ? `(${depth})` : ""}${preBookingKit ? `\n🌸 *Pre-Booking Kit:* YES (+₹450)\n⚠️ _Note: Customer requires a preservation starter kit before flower shipment._` : ""}\n🔗 *Track Order:* https://eunoia-resin-art.vercel.app/track/${submittedOrderId}`)}`}
                 target="_blank" 
                 rel="noreferrer"
                 className="w-full inline-flex justify-center items-center px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase font-semibold hover:scale-[1.01] shadow-lg transition-all"
@@ -363,6 +383,55 @@ ${trackingLink}`;
                       <p className="text-sm text-amber-800/80 mb-3">We highly recommend using <strong>DTDC Courier</strong>.</p>
                       <p className="text-sm text-amber-800/80 mb-2">Please avoid: <strong>Normal Post Office Shipping</strong></p>
                       <p className="text-xs text-amber-800/60 italic mt-3">Reason: Fresh flowers and delicate keepsakes may get damaged during long handling.</p>
+                    </div>
+
+                    {/* Flower Preservation Starter Kit Selectable Card */}
+                    <div className="animate-in fade-in duration-300">
+                      <div 
+                        onClick={() => setPreBookingKit(!preBookingKit)}
+                        className={`cursor-pointer rounded-2xl border p-5 transition-all relative overflow-hidden flex flex-col gap-4 ${
+                          preBookingKit 
+                            ? "border-gold bg-[#f5f0e6] shadow-[0_4px_20px_rgba(201,161,74,0.15)]" 
+                            : "border-border bg-secondary/10 hover:border-gold/50"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold tracking-wide text-foreground">Flower Preservation Starter Kit</span>
+                              <span className="text-[10px] bg-gold/20 text-gold px-2.5 py-0.5 rounded-full font-bold">+₹450</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Protect your wedding flowers before shipping them to our studio.</p>
+                          </div>
+                          <div className={`h-5 w-5 rounded border flex items-center justify-center transition-all ${preBookingKit ? "border-gold bg-gold text-primary-foreground" : "border-muted-foreground/40 bg-background"}`}>
+                            {preBookingKit && <Check className="h-3.5 w-3.5" />}
+                          </div>
+                        </div>
+
+                        <div className="border-t border-border/40 pt-3">
+                          <span className="text-[10px] tracking-widest uppercase text-muted-foreground font-semibold block mb-2">Included in kit:</span>
+                          <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+                            <li className="flex items-center gap-1.5">✦ 1kg Silica Gel</li>
+                            <li className="flex items-center gap-1.5">✦ Protective Gloves</li>
+                            <li className="flex items-center gap-1.5">✦ Airtight Container</li>
+                            <li className="flex items-center gap-1.5">✦ Instruction Card</li>
+                          </ul>
+                        </div>
+
+                        <div className="text-[10px] text-gold font-medium italic mt-1 border-t border-border/20 pt-2 flex items-center gap-1">
+                          <span>✨</span> Recommended for upcoming weddings & advance bookings.
+                        </div>
+                      </div>
+
+                      {/* Luxury Helper Notice */}
+                      {preBookingKit && (
+                        <div className="mt-3 p-4 rounded-xl bg-[#f5f0e6]/70 border border-gold/20 text-xs text-[#8f6d23] leading-relaxed animate-in fade-in slide-in-from-top-2 duration-300">
+                          <p className="font-semibold text-[10px] tracking-widest uppercase mb-1 flex items-center gap-1">🌸 Why This Kit Helps</p>
+                          <p>
+                            This preservation kit helps reduce flower discoloration, moisture damage, and petal decay before your memories safely reach our studio.
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Important Packaging Note */}
@@ -568,6 +637,12 @@ ${trackingLink}`;
                     <span className="text-muted-foreground">Submission Method</span>
                     <span className="font-medium capitalize">{submissionMethod === "ship" ? "Ship Real Flowers" : "Upload Images Only"}</span>
                   </div>
+                  {preBookingKit && (
+                    <div className="flex justify-between items-center py-1 border-t border-border/40 mt-1.5 pt-1.5">
+                      <span className="text-muted-foreground">Pre-Booking Kit</span>
+                      <span className="font-medium text-gold">YES (+₹450)</span>
+                    </div>
+                  )}
                   {uploadedImage && (
                     <div className="flex justify-between items-center py-1.5 border-t border-border/40 mt-1.5 pt-1.5">
                       <span className="text-muted-foreground">Uploaded Photo</span>
@@ -594,6 +669,30 @@ ${trackingLink}`;
                     <span className="text-gold font-display text-xl">Rs. {price.toLocaleString("en-IN")}</span>
                   </div>
                 </div>
+
+                {preBookingKit && (
+                  <div className="glass-card rounded-xl border border-gold/30 p-5 bg-gradient-to-br from-[#f5f0e6]/25 to-transparent space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-2 text-gold">
+                      <Flower2 className="h-4 w-4" />
+                      <h4 className="font-display text-sm font-semibold">🌸 Pre-Booking Kit Included</h4>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      We will ship a professional flower preservation starter kit to your delivery address. This kit helps reduce flower discoloration, moisture damage, and petal decay before your memories safely reach our studio.
+                    </p>
+                    <div className="border-t border-border/40 pt-2.5">
+                      <span className="text-[9px] tracking-widest uppercase text-muted-foreground font-semibold block mb-1.5">What's coming in your kit:</span>
+                      <ul className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground/80">
+                        <li className="flex items-center gap-1">✦ 1kg Silica Gel</li>
+                        <li className="flex items-center gap-1">✦ Protective Gloves</li>
+                        <li className="flex items-center gap-1">✦ Airtight Container</li>
+                        <li className="flex items-center gap-1">✦ Instruction Card</li>
+                      </ul>
+                    </div>
+                    <div className="text-[9px] text-gold/80 italic pt-1 border-t border-border/10">
+                      🚚 Your kit will be packed and shipped shortly after payment confirmation.
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-secondary/20 rounded-xl p-5 space-y-3 text-sm border border-border">
                   <h4 className="font-display text-lg border-b border-border pb-2">Contact & Delivery Details</h4>

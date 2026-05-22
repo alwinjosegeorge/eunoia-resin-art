@@ -114,13 +114,66 @@ function TrackOrderPage() {
   const isUpload = order.submissionMethod === "upload";
   const stage2Name = isUpload ? "Waiting For Images" : "Waiting For Flowers";
   
-  const stages = [...ALL_STAGES];
-  stages[1] = stage2Name;
+  const isKitOrder = order.preBookingKit === true;
+  const stages = isKitOrder ? [
+    "Order Received",
+    "Kit Packed",
+    "Kit Shipped",
+    "Kit Delivered",
+    "Flowers Prepared",
+    "Flowers Shipped",
+    "Flowers Received",
+    "Design Planning",
+    "Resin Casting",
+    "Drying Process",
+    "Finishing & Polishing",
+    "Ready For Dispatch",
+    "Delivered"
+  ] : [...ALL_STAGES];
 
-  // Determine current stage index based on order status. 
-  // For now, if status isn't perfectly matched, default to 0.
-  const currentStageIndex = stages.findIndex(s => s.toLowerCase() === order.status.toLowerCase());
-  const activeIndex = currentStageIndex === -1 ? 0 : currentStageIndex;
+  if (!isKitOrder) {
+    stages[1] = stage2Name;
+  }
+
+  // Determine current active stage index based on status and kit status
+  let activeIndex = 0;
+  if (isKitOrder) {
+    const statusLower = (order.status || "").toLowerCase();
+    const kitStatusLower = (order.kitStatus || "").toLowerCase();
+
+    if (statusLower === "delivered") {
+      activeIndex = 12;
+    } else if (statusLower === "shipped" || statusLower === "ready for dispatch") {
+      activeIndex = 11;
+    } else if (statusLower === "finishing & polishing") {
+      activeIndex = 10;
+    } else if (statusLower === "drying process") {
+      activeIndex = 9;
+    } else if (statusLower === "resin casting") {
+      activeIndex = 8;
+    } else if (statusLower === "design planning") {
+      activeIndex = 7;
+    } else if (statusLower === "flowers received") {
+      activeIndex = 6;
+    } else if (statusLower === "waiting for flowers" || statusLower === "order received") {
+      if (kitStatusLower === "delivered") {
+        if (order.courierDetails && order.courierDetails.toLowerCase().includes("flower")) {
+          activeIndex = 5; // Flowers Shipped
+        } else {
+          activeIndex = 3; // Kit Delivered
+        }
+      } else if (kitStatusLower === "shipped") {
+        activeIndex = 2; // Kit Shipped
+      } else if (kitStatusLower === "packed") {
+        activeIndex = 1; // Kit Packed
+      } else {
+        activeIndex = 0; // Order Received
+      }
+    }
+  } else {
+    const currentStageIndex = stages.findIndex(s => s.toLowerCase() === order.status.toLowerCase());
+    activeIndex = currentStageIndex === -1 ? 0 : currentStageIndex;
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 md:py-20">
@@ -247,6 +300,44 @@ function TrackOrderPage() {
         </ScrollReveal>
       )}
 
+      {/* Flower Preservation Starter Kit Customer Helper Card */}
+      {isKitOrder && order.kitStatus === "Delivered" && (order.status === "Waiting For Flowers" || order.status === "Order Received") && (
+        <ScrollReveal delay={190}>
+          <div className="glass-card rounded-3xl p-6 md:p-8 mb-12 border border-gold/30 bg-gradient-to-br from-gold/5 to-transparent space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center gap-2.5 text-gold">
+              <Flower2 className="h-6 w-6" />
+              <h3 className="font-display text-xl font-semibold">Dry & Ship Your Flowers</h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Now that your <span className="text-foreground font-semibold">Preservation Starter Kit</span> has been delivered, please begin drying your wedding flowers using the included silica gel and instruction card.
+            </p>
+            <div className="bg-[#f5f0e6]/45 p-4 rounded-xl border border-gold/20 text-xs text-[#8f6d23] leading-relaxed space-y-2">
+              <p><strong>💡 Step 1:</strong> Use the 1kg silica gel and airtight container to dry your flowers.</p>
+              <p><strong>💡 Step 2:</strong> Once fully dried, pack them safely in the airtight container.</p>
+              <p><strong>💡 Step 3:</strong> Ship them to our Calicut studio using <strong>DTDC Courier</strong>.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <a 
+                href={`https://wa.me/917591947287?text=${encodeURIComponent(`Hi Manjima, I have received the Preservation Starter Kit for my order *${order.id}*. I will begin drying my flowers and ship them soon!`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex justify-center items-center px-5 py-3 border border-gold text-gold hover:bg-gold/5 rounded-full text-xs uppercase tracking-wider font-semibold transition hover:scale-[1.01]"
+              >
+                💬 Got the Kit! Start Drying
+              </a>
+              <a 
+                href={`https://wa.me/917591947287?text=${encodeURIComponent(`Hi Manjima, I have shipped my dried wedding flowers for order *${order.id}*!\n\nCourier Name: DTDC\nTracking ID: [Please type your tracking ID here]`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex justify-center items-center px-5 py-3 bg-gold text-primary-foreground rounded-full text-xs uppercase tracking-wider font-semibold hover:opacity-90 shadow-gold transition-all hover:scale-[1.01]"
+              >
+                🚚 I have Shipped My Flowers →
+              </a>
+            </div>
+          </div>
+        </ScrollReveal>
+      )}
+
       {/* Timeline */}
       <ScrollReveal delay={200}>
         <div className="pl-4 md:pl-8">
@@ -256,7 +347,7 @@ function TrackOrderPage() {
             {stages.map((stage, index) => {
               const isCompleted = index < activeIndex;
               const isCurrent = index === activeIndex;
-              const isDryingProcess = index === 5; // Drying process is stage 6 (index 5)
+              const isDryingProcess = isKitOrder ? index === 9 : index === 5;
               
               return (
                 <div key={index} className={`relative flex items-center gap-6 ${isCompleted ? 'opacity-70' : isCurrent ? 'opacity-100' : 'opacity-40'}`}>
@@ -272,22 +363,52 @@ function TrackOrderPage() {
                       {isDryingProcess && <Sparkles className="h-4 w-4 text-gold animate-pulse" />}
                     </h3>
                     
+                    {stage === "Kit Delivered" && (
+                      <p className="text-[11px] text-gold font-medium mt-1 leading-relaxed italic">
+                        “Please begin drying your flowers using the included instruction guide.”
+                      </p>
+                    )}
+                    
                     {isCurrent && (
                       <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                        {index === 0 && "Your order has been logged into our system."}
-                        {index === 1 && (isUpload ? "We are waiting for you to upload your images." : "We are waiting for your bouquet to arrive at our studio safely.")}
-                        {index === 2 && "Your precious memories have safely arrived!"}
-                        {index === 3 && "Manjima is sketching and planning the perfect layout for your piece."}
-                        {index === 4 && "The first layers of crystal clear resin are being poured."}
-                        {index === 5 && (
-                          <span className="text-foreground/80 font-medium italic">
-                            This is the most crucial stage. Perfect curing takes time to ensure zero bubbles and absolute clarity. Thank you for your patience!
-                          </span>
+                        {isKitOrder ? (
+                          <>
+                            {index === 0 && "Your order has been logged into our system."}
+                            {index === 1 && "Your Flower Preservation Starter Kit is currently being packed by our artist."}
+                            {index === 2 && "Your Flower Preservation Starter Kit has been shipped! Check back soon for delivery."}
+                            {index === 3 && "Your Preservation Kit has been delivered! Please begin drying your flowers using the included instruction guide."}
+                            {index === 4 && "Great job! Please proceed to dry your flowers completely over the next few days."}
+                            {index === 5 && "Your dried flowers are packed and shipped! We are awaiting arrival at our Calicut studio."}
+                            {index === 6 && "Your dried flowers have safely arrived at our studio! The preservation stage starts now."}
+                            {index === 7 && "Manjima is sketching and planning the perfect layout for your custom piece."}
+                            {index === 8 && "The first layers of crystal clear resin are being cast and poured."}
+                            {index === 9 && (
+                              <span className="text-foreground/80 font-medium italic">
+                                This is the most crucial stage. Perfect curing takes time to ensure zero bubbles and absolute clarity. Thank you for your patience!
+                              </span>
+                            )}
+                            {index === 10 && "Sanding, polishing, and refining the edges to perfection."}
+                            {index === 11 && "Your piece is complete and ready for dispatch! We are packaging it safely."}
+                            {index === 12 && "Delivered. We hope you love your eternal memory."}
+                          </>
+                        ) : (
+                          <>
+                            {index === 0 && "Your order has been logged into our system."}
+                            {index === 1 && (isUpload ? "We are waiting for you to upload your images." : "We are waiting for your bouquet to arrive at our studio safely.")}
+                            {index === 2 && "Your precious memories have safely arrived!"}
+                            {index === 3 && "Manjima is sketching and planning the perfect layout for your piece."}
+                            {index === 4 && "The first layers of crystal clear resin are being poured."}
+                            {index === 5 && (
+                              <span className="text-foreground/80 font-medium italic">
+                                This is the most crucial stage. Perfect curing takes time to ensure zero bubbles and absolute clarity. Thank you for your patience!
+                              </span>
+                            )}
+                            {index === 6 && "Sanding, polishing, and refining the edges to perfection."}
+                            {index === 7 && "Your piece is complete! We are packing it safely."}
+                            {index === 8 && "Dispatched! Your tracking number will be updated here shortly."}
+                            {index === 9 && "Delivered. We hope you love your eternal memory."}
+                          </>
                         )}
-                        {index === 6 && "Sanding, polishing, and refining the edges to perfection."}
-                        {index === 7 && "Your piece is complete! We are packing it safely."}
-                        {index === 8 && "Dispatched! Your tracking number will be updated here shortly."}
-                        {index === 9 && "Delivered. We hope you love your eternal memory."}
                       </p>
                     )}
                   </div>

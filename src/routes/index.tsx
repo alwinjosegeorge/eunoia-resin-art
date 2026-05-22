@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, Heart } from "lucide-react";
+import { ArrowRight, Sparkles, Heart, Flower2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import hero from "@/assets/hero-bouquet.jpeg";
 import { products as staticProducts, formatINR } from "@/data/products";
@@ -220,7 +220,7 @@ function HomePage() {
                   <div className="mt-4 text-center">
                     <div className="font-display text-lg">{p.name}</div>
                     <div className="text-gold text-sm mt-1">{formatINR(p.price)}</div>
-                    <div className="mt-3 text-[10px] tracking-[0.3em] uppercase text-muted-foreground border-t border-border pt-3 group-hover:text-gold">Add to cart</div>
+                    <div className="mt-3 text-[10px] tracking-[0.3em] uppercase text-muted-foreground border-t border-border pt-3 group-hover:text-gold">View Piece</div>
                   </div>
                 </Link>
               </ScrollReveal>
@@ -254,6 +254,98 @@ function HomePage() {
             <BeforeAfter />
           </ScrollReveal>
         </div>
+      </section>
+
+      {/* FLOWER PRESERVATION PRE-BOOKING KIT SHOWCASE */}
+      <section className="mx-auto max-w-7xl px-6 py-16">
+        <ScrollReveal>
+          <div className="glass-card rounded-[2.5rem] p-8 md:p-14 border border-gold/30 bg-gradient-to-br from-[#f5f0e6]/40 via-transparent to-gold/5 relative overflow-hidden">
+            {/* Ambient decorative lighting */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-gold-light/10 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blush/20 blur-[100px] rounded-full pointer-events-none" />
+            
+            <div className="grid lg:grid-cols-12 gap-12 items-center relative z-10">
+              <div className="lg:col-span-7 space-y-6">
+                <div className="inline-flex items-center gap-2 bg-gold/10 text-gold px-3.5 py-1.5 rounded-full text-[10px] tracking-[0.25em] uppercase font-bold border border-gold/25">
+                  <Sparkles className="h-3.5 w-3.5" /> Luxury Safety Pre-Booking
+                </div>
+                
+                <h2 className="font-display text-4xl md:text-5xl leading-tight text-charcoal">
+                  Preserve Before <br />
+                  You <span className="font-serif italic shimmer-text">Ship</span>
+                </h2>
+                
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
+                  Pre-book our flower preservation safety kit for upcoming weddings and special memories. Protect your bridal bouquet immediately and reduce flower discoloration, moisture damage, and petal decay before your memories safely reach our Calicut studio.
+                </p>
+                
+                <div className="p-4 rounded-xl bg-[#f5f0e6]/70 border border-gold/20 text-xs text-[#8f6d23] leading-relaxed max-w-xl animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    🌸 Why This Kit Helps
+                  </p>
+                  <p>
+                    This preservation kit helps reduce flower discoloration, moisture damage, and petal decay before your memories safely reach our studio. This makes the ₹450 feel like professional preservation care instead of an add-on charge.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <Link
+                    to="/checkout"
+                    search={{
+                      variantId: "5x5-frame",
+                      preBookingKit: "true",
+                      submissionMethod: "ship"
+                    }}
+                    className="group inline-flex items-center gap-3 bg-[#c9a14a] hover:bg-[#b08b3e] text-white px-8 py-4 rounded-full text-xs tracking-[0.2em] uppercase font-bold transition-all shadow-[0_4px_15px_rgba(201,161,74,0.25)] hover:scale-[1.01]"
+                  >
+                    Reserve Preservation Kit
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="lg:col-span-5">
+                <div className="glass-card rounded-3xl p-6 md:p-8 border border-gold/30 bg-gradient-to-br from-gold/5 to-transparent space-y-6 relative overflow-hidden shadow-[0_15px_35px_rgba(201,161,74,0.05)]">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-display text-xl font-semibold text-charcoal">🌸 Pre-Booking Kit</h3>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 uppercase tracking-wider">Professional Flower Care</p>
+                    </div>
+                    <span className="text-xs bg-[#c9a14a] text-white font-bold px-3 py-1 rounded-full shadow-sm">
+                      ₹450 Only
+                    </span>
+                  </div>
+
+                  <div className="border-t border-border/40 pt-5">
+                    <span className="text-[10px] tracking-widest uppercase text-muted-foreground font-semibold block mb-3">Included in kit:</span>
+                    <ul className="space-y-3 text-xs text-muted-foreground">
+                      <li className="flex items-center gap-2.5">
+                        <span className="text-gold flex-shrink-0">✦</span> 
+                        <span><strong>1kg Silica Gel:</strong> Keeps petals pristine</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <span className="text-gold flex-shrink-0">✦</span> 
+                        <span><strong>Protective Gloves:</strong> Prevent oil & acid transfer</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <span className="text-gold flex-shrink-0">✦</span> 
+                        <span><strong>Airtight Container:</strong> Locks out tropical moisture</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <span className="text-gold flex-shrink-0">✦</span> 
+                        <span><strong>Instruction Card:</strong> Step-by-step drying guide</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="text-[10px] text-gold/80 italic pt-2 border-t border-border/10">
+                    🚚 Dispatched shortly after pre-booking confirmation.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       <TestimonialCarousel />

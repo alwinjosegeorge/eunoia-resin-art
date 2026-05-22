@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { products, formatINR, pricingVariants } from "@/data/products";
 import { ScrollReveal } from "@/components/site/ScrollReveal";
-import { Heart, ShieldCheck, Truck, Clock, Package, ArrowLeft } from "lucide-react";
+import { Heart, ShieldCheck, Truck, Clock, Package, ArrowLeft, Check } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 
@@ -64,6 +64,14 @@ function ProductPage() {
   
   const [notes, setNotes] = useState("");
   const [activeImage, setActiveImage] = useState(0);
+  const [submissionMethod, setSubmissionMethod] = useState<"ship" | "upload">("ship");
+  const [preBookingKit, setPreBookingKit] = useState(false);
+
+  useEffect(() => {
+    if (submissionMethod === "upload") {
+      setPreBookingKit(false);
+    }
+  }, [submissionMethod]);
 
   useEffect(() => {
     if (isDbProduct) {
@@ -104,6 +112,8 @@ function ProductPage() {
         variantId: isDbProduct ? product.id : selectedVariantId,
         depth: isDbProduct ? selectedDbDepth : selectedDepth,
         notes: notes,
+        submissionMethod,
+        preBookingKit: String(preBookingKit),
         ...(isDbProduct ? { size: selectedDbSize, isDbProduct: "true" } : {})
       } as any
     });
@@ -155,8 +165,8 @@ function ProductPage() {
           <div className="text-[10px] tracking-[0.35em] uppercase text-gold">{product.category}</div>
           <h1 className="font-display text-4xl md:text-5xl mt-2">{product.name}</h1>
           <div className="mt-3 flex items-baseline gap-3">
-            <div className="text-3xl text-foreground font-medium">{formatINR(currentPrice)}</div>
-            <div className="text-sm line-through text-muted-foreground">{formatINR(Math.round(currentPrice * 1.25))}</div>
+            <div className="text-3xl text-foreground font-medium">{formatINR(currentPrice + (preBookingKit ? 450 : 0))}</div>
+            <div className="text-sm line-through text-muted-foreground">{formatINR(Math.round((currentPrice + (preBookingKit ? 450 : 0)) * 1.25))}</div>
             <span className="text-xs text-destructive bg-destructive/10 px-2 py-0.5 rounded">20% off</span>
           </div>
           <p className="mt-6 text-muted-foreground leading-relaxed">{product.description}</p>
@@ -242,6 +252,78 @@ function ProductPage() {
             </div>
           )}
 
+          {/* Memory Preservation Method Selector */}
+          <div className="mt-6">
+            <label className="text-[10px] tracking-widest uppercase text-muted-foreground font-medium block mb-3">Memory Preservation Method</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setSubmissionMethod("ship")}
+                className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-300 ${submissionMethod === "ship" ? "border-gold bg-gold/5 shadow-[0_0_10px_rgba(201,161,74,0.15)] text-gold font-medium" : "border-border text-muted-foreground hover:border-gold"}`}
+              >
+                <span className="text-xs font-semibold tracking-wide flex items-center gap-1.5 uppercase tracking-[0.1em]"><Package className="h-4 w-4" /> Ship Real Flowers</span>
+                <span className="text-[9px] opacity-80 mt-1">Send us your bouquet</span>
+              </button>
+              <button
+                onClick={() => setSubmissionMethod("upload")}
+                className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-300 ${submissionMethod === "upload" ? "border-gold bg-gold/5 shadow-[0_0_10px_rgba(201,161,74,0.15)] text-gold font-medium" : "border-border text-muted-foreground hover:border-gold"}`}
+              >
+                <span className="text-xs font-semibold tracking-wide flex items-center gap-1.5 uppercase tracking-[0.1em]"><Heart className="h-4 w-4" /> Upload Images Only</span>
+                <span className="text-[9px] opacity-80 mt-1">Photo-based resin art</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Flower Preservation Starter Kit Selectable Card */}
+          {submissionMethod === "ship" && (
+            <div className="mt-6 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div 
+                onClick={() => setPreBookingKit(!preBookingKit)}
+                className={`cursor-pointer rounded-2xl border p-5 transition-all relative overflow-hidden flex flex-col gap-4 ${
+                  preBookingKit 
+                    ? "border-gold bg-[#f5f0e6] shadow-[0_4px_20px_rgba(201,161,74,0.15)]" 
+                    : "border-border bg-secondary/10 hover:border-gold/50"
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold tracking-wide text-foreground">Flower Preservation Starter Kit</span>
+                      <span className="text-[10px] bg-gold/20 text-gold px-2.5 py-0.5 rounded-full font-bold">+₹450</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Protect your wedding flowers before shipping them to our studio.</p>
+                  </div>
+                  <div className={`h-5 w-5 rounded border flex items-center justify-center transition-all ${preBookingKit ? "border-gold bg-gold text-primary-foreground" : "border-muted-foreground/40 bg-background"}`}>
+                    {preBookingKit && <Check className="h-3.5 w-3.5" />}
+                  </div>
+                </div>
+
+                <div className="border-t border-border/40 pt-3">
+                  <span className="text-[10px] tracking-widest uppercase text-muted-foreground font-medium block mb-2">Included in kit:</span>
+                  <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+                    <li className="flex items-center gap-1.5">✦ 1kg Silica Gel</li>
+                    <li className="flex items-center gap-1.5">✦ Protective Gloves</li>
+                    <li className="flex items-center gap-1.5">✦ Airtight Container</li>
+                    <li className="flex items-center gap-1.5">✦ Preservation Instruction Card</li>
+                  </ul>
+                </div>
+
+                <div className="text-[10px] text-gold font-medium italic mt-1 border-t border-border/20 pt-2 flex items-center gap-1">
+                  <span>✨</span> Recommended for upcoming weddings & advance bookings.
+                </div>
+              </div>
+
+              {/* Luxury Helper Notice */}
+              {preBookingKit && (
+                <div className="mt-3 p-4 rounded-xl bg-[#f5f0e6]/70 border border-gold/20 text-xs text-[#8f6d23] leading-relaxed animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="font-semibold text-[10px] tracking-widest uppercase mb-1 flex items-center gap-1">🌸 Why This Kit Helps</p>
+                  <p>
+                    This preservation kit helps reduce flower discoloration, moisture damage, and petal decay before your memories safely reach our studio.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Trust / Process Cards */}
           <div className="mt-8 grid grid-cols-1 gap-3">
             {(!isDbProduct || product.showProductionTime !== false) && (
@@ -279,15 +361,12 @@ function ProductPage() {
             )}
           </div>
 
-          <div className="mt-8 space-y-3">
+          <div className="mt-8">
             <button 
               onClick={handleBookNow} 
               className="w-full flex items-center justify-center gap-3 bg-gold text-primary-foreground rounded-full py-4 text-sm tracking-[0.25em] uppercase hover:opacity-90 hover:scale-[1.01] transition-all shadow-gold"
             >
               <Heart className="h-4 w-4" /> Book Now
-            </button>
-            <button className="w-full flex items-center justify-center gap-3 border border-border bg-transparent text-foreground rounded-full py-4 text-sm tracking-[0.25em] uppercase hover:bg-secondary transition">
-              Add to Cart
             </button>
           </div>
 

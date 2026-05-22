@@ -55,6 +55,9 @@ export const Route = createFileRoute("/api/sync")({
                 previewImage: sanitizeImageField(orderData.previewImage, orderData.productName),
                 adminNotes: orderData.adminNotes,
                 courierDetails: orderData.courierDetails,
+                preBookingKit: orderData.preBookingKit || false,
+                kitPrice: Number(orderData.kitPrice) || 0,
+                kitStatus: orderData.kitStatus || "",
                 createdAt: orderData.createdAt ? new Date(orderData.createdAt) : new Date(),
                 timeline: timeline
               });

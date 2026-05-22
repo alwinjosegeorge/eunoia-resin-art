@@ -36,6 +36,9 @@ export interface IOrder extends Document {
   courierDetails?: string;
   createdAt: Date;
   timeline?: IOrderTimeline[];
+  preBookingKit?: boolean;
+  kitPrice?: number;
+  kitStatus?: string;
 }
 
 const OrderSchema: Schema = new Schema(
@@ -63,6 +66,9 @@ const OrderSchema: Schema = new Schema(
     previewImage: { type: String },
     adminNotes: { type: String },
     courierDetails: { type: String },
+    preBookingKit: { type: Boolean, default: false },
+    kitPrice: { type: Number, default: 0 },
+    kitStatus: { type: String, default: "" },
     createdAt: { type: Date, default: Date.now, required: true, index: true },
     timeline: [
       {
