@@ -29,17 +29,30 @@ export default defineConfig({
         configResolved(config) {
           isSsr = !!config.build.ssr;
         },
-        renderChunk(code, chunk) {
-          if (isSsr) {
-            const cleanCode = code
-              .replace(/(?<!\.)\brequire\s*\(/g, "globalThis.require(")
-              .replace(/\btypeof\s+require\b/g, "typeof globalThis.require");
-            return {
-              code: `import { createRequire as _createRequire } from 'module';\nconst require = _createRequire(import.meta.url);\n${cleanCode}`,
-              map: null,
-            };
+        renderChunk(code, chunk, options) {
+          const isServer = !!(
+            options.dir?.includes("server") || 
+            options.dir?.includes("index.func") || 
+            options.dir?.includes("functions") ||
+            isSsr
+          );
+
+          if (!isServer) {
+            return null;
           }
-          return null;
+
+          const hasRequire = /(?<!\.)\brequire\s*\(/.test(code) || /\btypeof\s+require\b/.test(code);
+          if (!hasRequire) {
+            return null;
+          }
+
+          const cleanCode = code
+            .replace(/(?<!\.)\brequire\s*\(/g, "globalThis.require(")
+            .replace(/\btypeof\s+require\b/g, "typeof globalThis.require");
+          return {
+            code: `import { createRequire as _createRequire } from 'module';\nconst require = _createRequire(import.meta.url);\n${cleanCode}`,
+            map: null,
+          };
         },
       },
     ],
