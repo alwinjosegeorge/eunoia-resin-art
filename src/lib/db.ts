@@ -3,8 +3,15 @@ initRequirePolyfill();
 import mongoose from "mongoose";
 
 
-// URL encode the '@' in the password to '%40' for valid connection URI parsing
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://eunoia_db_user:eunoia%402026@cluster0.z4udyji.mongodb.net/eunoia_resin_art?retryWrites=true&w=majority";
+// MONGODB_URI must be set as an environment variable (e.g. in .env or Vercel settings).
+// Never hardcode credentials here!
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  throw new Error(
+    "MONGODB_URI environment variable is not set. " +
+    "Add it to your .env file locally, or to Vercel Environment Variables in production."
+  );
+}
 
 interface MongooseCache {
   conn: typeof mongoose | null;

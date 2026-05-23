@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = "mongodb+srv://eunoia_db_user:eunoia%402026@cluster0.z4udyji.mongodb.net/eunoia_resin_art?retryWrites=true&w=majority";
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) throw new Error("Set MONGODB_URI in your .env file before running this script.");
 
 const OrderSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
