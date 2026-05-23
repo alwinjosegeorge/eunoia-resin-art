@@ -97,9 +97,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Eunoia Resin Art — Preserving Your Precious Memories Forever" },
       { property: "og:description", content: "Luxury handcrafted resin art preserving bridal bouquets, baby keepsakes & life's most precious memories. Made with soul by Manjima in Kerala." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://eunoiaresinart.vercel.app/" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Eunoia Resin Art — Preserving Your Precious Memories Forever" },
       { name: "twitter:description", content: "Luxury handcrafted resin art preserving bridal bouquets, baby keepsakes & life's most precious memories. Made with soul by Manjima in Kerala." },
+      { name: "twitter:site", content: "@eunoiaresinart" },
     ],
     links: [
       {

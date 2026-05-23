@@ -37,7 +37,7 @@ function HomePage() {
             return s === "active" || s === "featured" || !p.status;
           });
           
-          // Map DB products to UI Product shape
+          // Map DB products to UI Product shape (include isSignatureCollection flag)
           const mapped = activeOnly.map((p: any) => ({
             id: p.id,
             name: p.name,
@@ -47,7 +47,8 @@ function HomePage() {
             image: p.image || staticProducts[0].image,
             hoverImage: p.hoverImage,
             badge: p.badge,
-            description: p.description
+            description: p.description,
+            isSignatureCollection: !!p.isSignatureCollection,
           }));
           
           setDbProducts(mapped);
@@ -61,6 +62,9 @@ function HomePage() {
     loadProducts();
   }, []);
 
+  // Only show products explicitly marked as Signature Collection in the dashboard
+  const signatureProducts = dbProducts.filter((p: any) => p.isSignatureCollection);
+  // All active products for Best Sellers
   const displayProducts = dbProducts;
 
   return (
@@ -148,12 +152,12 @@ function HomePage() {
             Array.from({ length: 3 }).map((_, idx) => (
               <div key={idx} className="animate-pulse rounded-2xl aspect-[4/5] bg-secondary/50" />
             ))
-          ) : displayProducts.length === 0 ? (
+          ) : signatureProducts.length === 0 ? (
             <div className="col-span-full text-center py-10 bg-secondary/10 rounded-2xl border border-border/40 text-muted-foreground text-sm">
-              No signature collections added yet.
+              No signature collections added yet. Mark products as "Signature Collection" in the dashboard.
             </div>
           ) : (
-            displayProducts.slice(0, 3).map((p, i) => (
+            signatureProducts.slice(0, 3).map((p: any, i: number) => (
               <ScrollReveal key={p.id} delay={i * 120}>
                 <Link to="/product/$id" params={{ id: p.id }} className="block group hover-lift">
                   <div className="relative overflow-hidden rounded-2xl aspect-[4/5] bg-secondary">

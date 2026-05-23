@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import "@tanstack/react-start";
 
-const BASE_URL = "";
+const BASE_URL = "https://eunoiaresinart.vercel.app";
 const paths = ["/", "/shop", "/custom", "/wedding", "/about", "/faq", "/contact"];
 
 export const Route = createFileRoute("/sitemap.xml")({
