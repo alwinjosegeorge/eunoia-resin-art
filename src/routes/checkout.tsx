@@ -189,7 +189,7 @@ function CheckoutPage() {
       existingOrders.push(newOrder);
       localStorage.setItem("era_orders", JSON.stringify(existingOrders));
 
-      const trackingLink = `https://eunoia-resin-art.vercel.app/track/${orderId}`;
+      const trackingLink = `https://eunoiaresinart.vercel.app/track/${orderId}`;
 
       const whatsappMessage = `🌸 *New Eunoia Resin Art Order*
 
@@ -277,7 +277,7 @@ ${trackingLink}`;
             {/* Buttons */}
             <div className="flex flex-col gap-3 justify-center pt-4 max-w-md mx-auto">
               <a 
-                href={`https://wa.me/917591947287?text=${encodeURIComponent(`🌸 *New Eunoia Resin Art Order*\n\n🆔 *Order ID:* ${submittedOrderId}\n👤 *Customer:* ${customer.name}\n📱 *Phone:* ${customer.mobile}\n📦 *Product:* ${productName} ${depth ? `(${depth})` : ""}${preBookingKit ? `\n🌸 *Pre-Booking Kit:* YES (+₹450)\n⚠️ _Note: Customer requires a preservation starter kit before flower shipment._` : ""}\n🔗 *Track Order:* https://eunoia-resin-art.vercel.app/track/${submittedOrderId}`)}`}
+                href={`https://wa.me/917591947287?text=${encodeURIComponent(`🌸 *New Eunoia Resin Art Order*\n\n🆔 *Order ID:* ${submittedOrderId}\n👤 *Customer:* ${customer.name}\n📱 *Phone:* ${customer.mobile}\n📦 *Product:* ${productName} ${depth ? `(${depth})` : ""}${preBookingKit ? `\n🌸 *Pre-Booking Kit:* YES (+₹450)\n⚠️ _Note: Customer requires a preservation starter kit before flower shipment._` : ""}\n🔗 *Track Order:* https://eunoiaresinart.vercel.app/track/${submittedOrderId}`)}`}
                 target="_blank" 
                 rel="noreferrer"
                 className="w-full inline-flex justify-center items-center px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] md:text-xs tracking-[0.2em] uppercase font-semibold hover:scale-[1.01] shadow-lg transition-all"
